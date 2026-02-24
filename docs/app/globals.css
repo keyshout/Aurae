@@ -1,45 +1,32 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --bg: #000000;
-  --fg: #fafafa;
-  --accent: #06b6d4;
-  --accent-violet: #8b5cf6;
-  --card-bg: #0a0a0a;
-  --card-border: #1a1a2e;
-  --muted: #71717a;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+    body {
+        background-color: theme('colors.background.light', #0f0e17);
+        color: theme('colors.text.main', #fffffe);
+        font-family: theme('fontFamily.display');
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
 }
 
-html {
-  scroll-behavior: smooth;
-}
+@layer utilities {
+    .glass-card {
+        background: rgba(30, 28, 46, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
+    .gradient-text {
+        background: linear-gradient(135deg, #fffffe 0%, #a7a9be 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
-::selection {
-  background: rgba(6, 182, 212, 0.3);
-  color: white;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 3px;
+    .hero-glow {
+        background: radial-gradient(circle at center, rgba(75, 43, 238, 0.15) 0%, rgba(15, 14, 23, 0) 70%);
+    }
 }

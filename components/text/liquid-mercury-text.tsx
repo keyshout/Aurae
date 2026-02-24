@@ -47,7 +47,8 @@ export const LiquidMercuryText: React.FC<LiquidMercuryTextProps> = ({
     ariaLabel,
 }) => {
     const prefersReducedMotion = useReducedMotion();
-    const filterId = useId();
+    const RawId = useId();
+    const filterId = `mercury-filter-${RawId.replace(/:/g, "")}`;
 
     return (
         <span
@@ -58,12 +59,12 @@ export const LiquidMercuryText: React.FC<LiquidMercuryTextProps> = ({
             {/* SVG filter for metaball/liquid merge effect */}
             <svg className="absolute w-0 h-0" aria-hidden="true">
                 <defs>
-                    <filter id={filterId}>
+                    <filter id={filterId} colorInterpolationFilters="sRGB">
                         <feGaussianBlur in="SourceGraphic" stdDeviation={blurStrength} result="blur" />
                         <feColorMatrix
                             in="blur"
                             type="matrix"
-                            values={`1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 ${threshold} -${threshold - 1}`}
+                            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10"
                             result="sharp"
                         />
                         <feComposite in="SourceGraphic" in2="sharp" operator="atop" />
