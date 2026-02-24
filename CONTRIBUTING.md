@@ -6,7 +6,7 @@ Welcome! We're excited you want to contribute to Aurae. We care about **original
 
 ```bash
 # Fork and clone
-git clone https://github.com/YOUR_USERNAME/aurae.git
+git clone https://github.com/keyshout/aurae.git
 cd aurae
 
 # Install dependencies
