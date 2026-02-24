@@ -1,0 +1,33 @@
+name: Component Request
+description: Suggest a new component or hook for Aurae
+labels: ["component-request"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Proposed component name
+    validations:
+      required: true
+  - type: textarea
+    id: concept
+    attributes:
+      label: Concept (2-3 sentences)
+      description: What does it do? What makes it original?
+    validations:
+      required: true
+  - type: input
+    id: principle
+    attributes:
+      label: Animation principle
+      placeholder: e.g. fluid dynamics, spring physics, optical diffraction
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Originality check
+      options:
+        - label: This is NOT a clone of a ReactBits / MagicUI / Aceternity component
+          required: true
+        - label: This does NOT rely on typewriter, fade-in, neon border, or meteor shower effects
+          required: true
