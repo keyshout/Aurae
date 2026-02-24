@@ -1,6 +1,7 @@
 <p align="center">
   <h1 align="center">Aurae</h1>
   <p align="center"><em>95 original React components. Physics-based. MIT licensed. Free forever.</em></p>
+  <p align="center"><strong><a href="https://keyshout.github.io/Aurae">🌐 View the Interactive Documentation & Demo</a></strong></p>
 </p>
 
 <p align="center">
