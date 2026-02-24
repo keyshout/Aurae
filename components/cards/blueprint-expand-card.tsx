@@ -16,7 +16,7 @@
  * ```
  */
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
 export interface BlueprintExpandCardProps {
@@ -38,6 +38,15 @@ export const BlueprintExpandCard: React.FC<BlueprintExpandCardProps> = ({
     const prefersReducedMotion = useReducedMotion();
     const [isHovered, setIsHovered] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
+    const svgRef = useRef<SVGSVGElement>(null);
+    const [dims, setDims] = useState({ w: 300, h: 200 });
+
+    useEffect(() => {
+        if (cardRef.current) {
+            const rect = cardRef.current.getBoundingClientRect();
+            setDims({ w: rect.width + 48, h: rect.height + 48 });
+        }
+    }, []);
 
     const show = isHovered && !prefersReducedMotion;
 
@@ -58,12 +67,14 @@ export const BlueprintExpandCard: React.FC<BlueprintExpandCardProps> = ({
 
             {/* Blueprint annotations */}
             <svg
+                ref={svgRef}
                 className="absolute -inset-6 w-[calc(100%+48px)] h-[calc(100%+48px)] pointer-events-none"
+                viewBox={`0 0 ${dims.w} ${dims.h}`}
                 aria-hidden="true"
             >
                 {/* Width dimension line — top */}
                 <motion.line
-                    x1="24" y1="12" x2="calc(100% - 24)" y2="12"
+                    x1={24} y1={12} x2={dims.w - 24} y2={12}
                     stroke={annotationColor}
                     strokeWidth={1}
                     strokeDasharray="4 2"
@@ -72,14 +83,14 @@ export const BlueprintExpandCard: React.FC<BlueprintExpandCardProps> = ({
                     transition={{ duration: 0.4 }}
                 />
                 {/* Width end caps */}
-                <motion.line x1="24" y1="8" x2="24" y2="16" stroke={annotationColor} strokeWidth={1}
+                <motion.line x1={24} y1={8} x2={24} y2={16} stroke={annotationColor} strokeWidth={1}
                     animate={{ opacity: show ? 0.6 : 0 }} transition={{ duration: 0.3 }} />
-                <motion.line x1="calc(100% - 24)" y1="8" x2="calc(100% - 24)" y2="16" stroke={annotationColor} strokeWidth={1}
+                <motion.line x1={dims.w - 24} y1={8} x2={dims.w - 24} y2={16} stroke={annotationColor} strokeWidth={1}
                     animate={{ opacity: show ? 0.6 : 0 }} transition={{ duration: 0.3 }} />
 
                 {/* Height dimension line — right */}
                 <motion.line
-                    x1="calc(100% - 12)" y1="24" x2="calc(100% - 12)" y2="calc(100% - 24)"
+                    x1={dims.w - 12} y1={24} x2={dims.w - 12} y2={dims.h - 24}
                     stroke={annotationColor}
                     strokeWidth={1}
                     strokeDasharray="4 2"
@@ -91,7 +102,7 @@ export const BlueprintExpandCard: React.FC<BlueprintExpandCardProps> = ({
                 {/* Corner brackets */}
                 {[
                     "M24,28 L24,24 L28,24",
-                    `M${-24},28 L${-24},24 L${-28},24`,
+                    `M${dims.w - 24},28 L${dims.w - 24},24 L${dims.w - 28},24`,
                 ].map((d, i) => (
                     <motion.path
                         key={i}
