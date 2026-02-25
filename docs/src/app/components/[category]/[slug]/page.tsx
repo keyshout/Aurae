@@ -5,6 +5,13 @@ import { DocsSidebar } from "@/components/layout/DocsSidebar";
 import { ComponentPreview } from "@/components/layout/ComponentPreview";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+export function generateStaticParams() {
+    return Object.keys(Registry).map((key) => {
+        const [category, slug] = key.split("/");
+        return { category, slug };
+    });
+}
+
 export default async function ComponentPage({ params }: { params: Promise<{ category: string, slug: string }> }) {
     const { category, slug } = await params;
     const item = Registry[`${category}/${slug}`];
