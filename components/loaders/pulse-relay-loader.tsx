@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component PulseRelayLoader
@@ -19,7 +19,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface PulseRelayLoaderProps {
     /** Section names. Default: ['header', 'body', 'footer'] */
@@ -46,7 +46,6 @@ export const PulseRelayLoader: React.FC<PulseRelayLoaderProps> = ({
     interval = 800,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const [activeIndex, setActiveIndex] = useState(0);
 
     useEffect(() => {
@@ -118,3 +117,4 @@ export const PulseRelayLoader: React.FC<PulseRelayLoaderProps> = ({
 };
 
 export default PulseRelayLoader;
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component RefractionText
@@ -19,7 +19,7 @@
  */
 
 import React, { useRef, useState, useCallback } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface RefractionTextProps {
     /** Text to display */
@@ -50,7 +50,6 @@ export const RefractionText: React.FC<RefractionTextProps> = ({
     className = "",
     ariaLabel,
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const containerRef = useRef<HTMLDivElement>(null);
     const [isHovered, setIsHovered] = useState(false);
     const [pointerX, setPointerX] = useState(0.5);
@@ -165,3 +164,4 @@ export const RefractionText: React.FC<RefractionTextProps> = ({
 };
 
 export default RefractionText;
+

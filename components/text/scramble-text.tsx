@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component ScrambleText
@@ -19,7 +19,7 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const DEFAULT_CHARSET =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -53,7 +53,6 @@ export const ScrambleText: React.FC<ScrambleTextProps> = ({
     ariaLabel,
     onComplete,
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const [displayed, setDisplayed] = useState<string[]>(() =>
         Array.from({ length: text.length }, () =>
             charset[Math.floor(Math.random() * charset.length)]
@@ -156,3 +155,4 @@ export const ScrambleText: React.FC<ScrambleTextProps> = ({
 };
 
 export default ScrambleText;
+

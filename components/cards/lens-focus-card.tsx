@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component LensFocusCard
@@ -24,7 +24,7 @@
  */
 
 import React, { useRef, useState, useCallback } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface LensFocusCardProps {
     /** Card children */
@@ -46,7 +46,6 @@ export const LensFocusCard: React.FC<LensFocusCardProps> = ({
     edgeSoftness = 20,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const cardRef = useRef<HTMLDivElement>(null);
     const [pointer, setPointer] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
@@ -126,3 +125,4 @@ export const LensFocusCard: React.FC<LensFocusCardProps> = ({
 };
 
 export default LensFocusCard;
+

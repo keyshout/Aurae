@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component GlitchWeaveText
@@ -20,7 +20,7 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 
 export interface GlitchWeaveTextProps {
     /** Text to display */
@@ -51,7 +51,6 @@ export const GlitchWeaveText: React.FC<GlitchWeaveTextProps> = ({
     className = "",
     ariaLabel,
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const containerRef = useRef<HTMLDivElement>(null);
     const isInView = useInView(containerRef, { once: true, amount: 0.5 });
     const [phase, setPhase] = useState<"weaving" | "merging" | "done">("weaving");
@@ -186,3 +185,4 @@ export const GlitchWeaveText: React.FC<GlitchWeaveTextProps> = ({
 };
 
 export default GlitchWeaveText;
+

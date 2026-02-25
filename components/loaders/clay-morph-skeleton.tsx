@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component ClayMorphSkeleton
@@ -19,7 +19,8 @@
  */
 
 import React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { toPositiveNumber } from "../../lib/utils";
 
 export interface ClayMorphSkeletonProps {
     /** Preset layout: card, text, avatar, list. Default: "card" */
@@ -73,11 +74,11 @@ export const ClayMorphSkeleton: React.FC<ClayMorphSkeletonProps> = ({
     speed = 1,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     if (!isLoading) return null;
 
     const blocks = LAYOUTS[layout] || LAYOUTS.card;
-    const dur = 3 / speed;
+    const safeSpeed = toPositiveNumber(speed, 1, 0.01);
+    const dur = 3 / safeSpeed;
 
     return (
         <div className={`space-y-0 ${className}`} role="progressbar" aria-label="Loading content">
@@ -110,3 +111,4 @@ export const ClayMorphSkeleton: React.FC<ClayMorphSkeletonProps> = ({
 };
 
 export default ClayMorphSkeleton;
+

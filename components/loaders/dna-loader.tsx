@@ -19,6 +19,7 @@
 
 import React, { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { toPositiveInt, toPositiveNumber } from "../../lib/utils";
 
 export interface DNALoaderProps {
     /** Loader size (height). Default: 60 */
@@ -41,17 +42,22 @@ export const DNALoader: React.FC<DNALoaderProps> = ({
     className = "",
 }) => {
     const prefersReducedMotion = useReducedMotion();
-    const width = size * 1.5;
-    const height = size;
-    const dur = 2 / speed;
+    const safeSize = toPositiveNumber(size, 60, 1);
+    const safeSpeed = toPositiveNumber(speed, 1, 0.01);
+    const safeNodeCount = toPositiveInt(nodeCount, 10, 2);
+    const strandColors = colors.length >= 2 ? colors : ["#8b5cf6", "#06b6d4"];
+    const width = safeSize * 1.5;
+    const height = safeSize;
+    const dur = 2 / safeSpeed;
+    const amplitude = height * 0.35;
 
     const nodes = useMemo(
         () =>
-            Array.from({ length: nodeCount }, (_, i) => {
-                const t = i / (nodeCount - 1);
+            Array.from({ length: safeNodeCount }, (_, i) => {
+                const t = i / (safeNodeCount - 1);
                 return { t, x: t * width };
             }),
-        [nodeCount, width]
+        [safeNodeCount, width]
     );
 
     return (
@@ -61,92 +67,86 @@ export const DNALoader: React.FC<DNALoaderProps> = ({
             role="progressbar"
             aria-label="Loading"
         >
-            <svg width={width} height={height} aria-hidden="true">
-                {/* Connecting rungs */}
+            <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
                 {nodes.map((node, i) => {
-                    const phaseOffset = (i / nodeCount) * Math.PI * 2;
+                    const phaseOffset = (i / safeNodeCount) * Math.PI * 2;
+                    const y1a = height / 2 + Math.sin(phaseOffset) * amplitude;
+                    const y1b = height / 2 + Math.sin(phaseOffset + Math.PI) * amplitude;
+                    const y1c = height / 2 + Math.sin(phaseOffset + Math.PI * 2) * amplitude;
+                    const y2a = height / 2 + Math.sin(phaseOffset + Math.PI) * amplitude;
+                    const y2b = height / 2 + Math.sin(phaseOffset + Math.PI * 2) * amplitude;
+                    const y2c = height / 2 + Math.sin(phaseOffset + Math.PI * 3) * amplitude;
                     return (
-                        <motion.line
+                        <motion.div
                             key={`rung-${i}`}
-                            x1={node.x}
-                            x2={node.x}
-                            stroke="rgba(255,255,255,0.1)"
-                            strokeWidth={1}
-                            animate={{
-                                y1: [
-                                    height / 2 + Math.sin(phaseOffset) * (height * 0.35),
-                                    height / 2 + Math.sin(phaseOffset + Math.PI) * (height * 0.35),
-                                    height / 2 + Math.sin(phaseOffset + Math.PI * 2) * (height * 0.35),
-                                ],
-                                y2: [
-                                    height / 2 + Math.sin(phaseOffset + Math.PI) * (height * 0.35),
-                                    height / 2 + Math.sin(phaseOffset + Math.PI * 2) * (height * 0.35),
-                                    height / 2 + Math.sin(phaseOffset + Math.PI * 3) * (height * 0.35),
-                                ],
+                            className="absolute"
+                            style={{
+                                left: node.x,
+                                width: 1,
+                                background: "rgba(255,255,255,0.12)",
+                                transform: "translateX(-0.5px)",
                             }}
-                            transition={{ duration: dur, repeat: Infinity, ease: "linear" }}
+                            animate={prefersReducedMotion ? undefined : {
+                                top: [Math.min(y1a, y2a), Math.min(y1b, y2b), Math.min(y1c, y2c)],
+                                height: [Math.abs(y1a - y2a), Math.abs(y1b - y2b), Math.abs(y1c - y2c)],
+                            }}
+                            transition={prefersReducedMotion ? undefined : { duration: dur, repeat: Infinity, ease: "linear" }}
                         />
                     );
                 })}
 
-                {/* Strand 1 */}
                 {nodes.map((node, i) => {
-                    const phaseOffset = (i / nodeCount) * Math.PI * 2;
+                    const phaseOffset = (i / safeNodeCount) * Math.PI * 2;
+                    const yA = Math.sin(phaseOffset) * amplitude;
+                    const yB = Math.sin(phaseOffset + Math.PI) * amplitude;
                     return (
-                        <motion.circle
+                        <motion.div
                             key={`s1-${i}`}
-                            cx={node.x}
-                            r={3}
-                            fill={colors[0]}
-                            animate={{
-                                cy: [
-                                    height / 2 + Math.sin(phaseOffset) * (height * 0.35),
-                                    height / 2 + Math.sin(phaseOffset + Math.PI * 2) * (height * 0.35),
-                                ],
-                                opacity: [
-                                    Math.sin(phaseOffset) > 0 ? 1 : 0.4,
-                                    Math.sin(phaseOffset + Math.PI * 2) > 0 ? 1 : 0.4,
-                                ],
-                                scale: [
-                                    Math.sin(phaseOffset) > 0 ? 1.2 : 0.8,
-                                    Math.sin(phaseOffset + Math.PI * 2) > 0 ? 1.2 : 0.8,
-                                ],
+                            className="absolute rounded-full"
+                            style={{
+                                left: node.x - 3,
+                                top: height / 2 - 3,
+                                width: 6,
+                                height: 6,
+                                background: strandColors[0],
+                                boxShadow: `0 0 3px ${strandColors[0]}`,
                             }}
-                            transition={{ duration: dur, repeat: Infinity, ease: "linear" }}
-                            style={{ filter: `drop-shadow(0 0 3px ${colors[0]})` }}
+                            animate={prefersReducedMotion ? { y: yA, opacity: 0.7 } : {
+                                y: [yA, yB, yA],
+                                opacity: [Math.sin(phaseOffset) > 0 ? 1 : 0.4, Math.sin(phaseOffset + Math.PI) > 0 ? 1 : 0.4, Math.sin(phaseOffset) > 0 ? 1 : 0.4],
+                                scale: [Math.sin(phaseOffset) > 0 ? 1.2 : 0.8, Math.sin(phaseOffset + Math.PI) > 0 ? 1.2 : 0.8, Math.sin(phaseOffset) > 0 ? 1.2 : 0.8],
+                            }}
+                            transition={prefersReducedMotion ? undefined : { duration: dur, repeat: Infinity, ease: "linear" }}
                         />
                     );
                 })}
 
-                {/* Strand 2 */}
                 {nodes.map((node, i) => {
-                    const phaseOffset = (i / nodeCount) * Math.PI * 2 + Math.PI;
+                    const phaseOffset = (i / safeNodeCount) * Math.PI * 2 + Math.PI;
+                    const yA = Math.sin(phaseOffset) * amplitude;
+                    const yB = Math.sin(phaseOffset + Math.PI) * amplitude;
                     return (
-                        <motion.circle
+                        <motion.div
                             key={`s2-${i}`}
-                            cx={node.x}
-                            r={3}
-                            fill={colors[1]}
-                            animate={{
-                                cy: [
-                                    height / 2 + Math.sin(phaseOffset) * (height * 0.35),
-                                    height / 2 + Math.sin(phaseOffset + Math.PI * 2) * (height * 0.35),
-                                ],
-                                opacity: [
-                                    Math.sin(phaseOffset) > 0 ? 1 : 0.4,
-                                    Math.sin(phaseOffset + Math.PI * 2) > 0 ? 1 : 0.4,
-                                ],
-                                scale: [
-                                    Math.sin(phaseOffset) > 0 ? 1.2 : 0.8,
-                                    Math.sin(phaseOffset + Math.PI * 2) > 0 ? 1.2 : 0.8,
-                                ],
+                            className="absolute rounded-full"
+                            style={{
+                                left: node.x - 3,
+                                top: height / 2 - 3,
+                                width: 6,
+                                height: 6,
+                                background: strandColors[1],
+                                boxShadow: `0 0 3px ${strandColors[1]}`,
                             }}
-                            transition={{ duration: dur, repeat: Infinity, ease: "linear" }}
-                            style={{ filter: `drop-shadow(0 0 3px ${colors[1]})` }}
+                            animate={prefersReducedMotion ? { y: yA, opacity: 0.7 } : {
+                                y: [yA, yB, yA],
+                                opacity: [Math.sin(phaseOffset) > 0 ? 1 : 0.4, Math.sin(phaseOffset + Math.PI) > 0 ? 1 : 0.4, Math.sin(phaseOffset) > 0 ? 1 : 0.4],
+                                scale: [Math.sin(phaseOffset) > 0 ? 1.2 : 0.8, Math.sin(phaseOffset + Math.PI) > 0 ? 1.2 : 0.8, Math.sin(phaseOffset) > 0 ? 1.2 : 0.8],
+                            }}
+                            transition={prefersReducedMotion ? undefined : { duration: dur, repeat: Infinity, ease: "linear" }}
                         />
                     );
                 })}
-            </svg>
+            </div>
         </div>
     );
 };

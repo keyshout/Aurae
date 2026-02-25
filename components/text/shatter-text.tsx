@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component ShatterText
@@ -20,7 +20,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 
 
 export interface ShatterTextProps {
@@ -63,7 +63,6 @@ export const ShatterText: React.FC<ShatterTextProps> = ({
     ariaLabel,
     onComplete,
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const containerRef = useRef<HTMLSpanElement>(null);
     const isInView = useInView(containerRef, { once: true, amount: 0.5 });
     const [phase, setPhase] = useState<"idle" | "shattered" | "assembling" | "done">("idle");
@@ -174,3 +173,4 @@ export const ShatterText: React.FC<ShatterTextProps> = ({
 };
 
 export default ShatterText;
+

@@ -21,6 +21,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
+import { toPositiveNumber } from "../../lib/utils";
 
 export interface ConstellationLettersProps {
     /** Text to display */
@@ -55,6 +56,9 @@ export const ConstellationLetters: React.FC<ConstellationLettersProps> = ({
     ariaLabel,
 }) => {
     const prefersReducedMotion = useReducedMotion();
+    const safeDuration = toPositiveNumber(duration, 3, 0.01);
+    const safeDotSize = toPositiveNumber(dotSize, 4, 1);
+    const safeScatterRadius = toPositiveNumber(scatterRadius, 60, 0);
     const containerRef = useRef<HTMLDivElement>(null);
     const isInView = useInView(containerRef, { once: true, amount: 0.5 });
     const [phase, setPhase] = useState<"stars" | "connecting" | "text">("stars");
@@ -65,23 +69,27 @@ export const ConstellationLetters: React.FC<ConstellationLettersProps> = ({
     const starOffsets = useMemo(
         () =>
             text.split("").map(() => ({
-                x: (Math.random() - 0.5) * scatterRadius * 2,
-                y: (Math.random() - 0.5) * scatterRadius * 2,
+                x: (Math.random() - 0.5) * safeScatterRadius * 2,
+                y: (Math.random() - 0.5) * safeScatterRadius * 2,
             })),
-        [text, scatterRadius]
+        [text, safeScatterRadius]
     );
 
     useEffect(() => {
         if (!shouldAnimate) return;
+        if (prefersReducedMotion) {
+            setPhase("text");
+            return;
+        }
 
-        const t1 = setTimeout(() => setPhase("connecting"), duration * 300);
-        const t2 = setTimeout(() => setPhase("text"), duration * 700);
+        const t1 = setTimeout(() => setPhase("connecting"), safeDuration * 300);
+        const t2 = setTimeout(() => setPhase("text"), safeDuration * 700);
 
         return () => {
             clearTimeout(t1);
             clearTimeout(t2);
         };
-    }, [shouldAnimate, duration]);
+    }, [shouldAnimate, safeDuration, prefersReducedMotion]);
 
     return (
         <div
@@ -90,38 +98,35 @@ export const ConstellationLetters: React.FC<ConstellationLettersProps> = ({
             role="text"
             aria-label={ariaLabel || text}
         >
-            {/* SVG overlay for connecting lines */}
+            {/* Connecting lines */}
             {phase === "connecting" && (
-                <svg
-                    className="absolute inset-0 w-full h-full pointer-events-none"
-                    aria-hidden="true"
-                    style={{ overflow: "visible" }}
-                >
+                <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
                     {text.split("").map((_, i) => {
                         if (i >= text.length - 1) return null;
                         const charWidth = 100 / text.length;
                         const x1 = charWidth * (i + 0.5);
                         const x2 = charWidth * (i + 1.5);
+                        const widthPct = Math.max(0, x2 - x1);
                         return (
-                            <motion.line
+                            <motion.div
                                 key={`line-${i}`}
-                                x1={`${x1}%`}
-                                y1="50%"
-                                x2={`${x2}%`}
-                                y2="50%"
-                                stroke={lineColor}
-                                strokeWidth={1.5}
-                                initial={{ pathLength: 0, opacity: 0 }}
-                                animate={{ pathLength: 1, opacity: [0, 0.8, 0.8, 0] }}
+                                className="absolute top-1/2 h-px origin-left"
+                                style={{
+                                    left: `${x1}%`,
+                                    width: `${widthPct}%`,
+                                    background: lineColor,
+                                }}
+                                initial={{ scaleX: 0, opacity: 0 }}
+                                animate={{ scaleX: 1, opacity: [0, 0.8, 0.8, 0] }}
                                 transition={{
-                                    duration: duration * 0.3,
+                                    duration: safeDuration * 0.3,
                                     delay: i * 0.05,
                                     ease: "easeInOut",
                                 }}
                             />
                         );
                     })}
-                </svg>
+                </div>
             )}
 
             {/* Characters */}
@@ -166,10 +171,10 @@ export const ConstellationLetters: React.FC<ConstellationLettersProps> = ({
                                     <span
                                         className="rounded-full"
                                         style={{
-                                            width: dotSize,
-                                            height: dotSize,
+                                            width: safeDotSize,
+                                            height: safeDotSize,
                                             background: dotColor,
-                                            boxShadow: `0 0 ${dotSize * 2}px ${dotColor}`,
+                                            boxShadow: `0 0 ${safeDotSize * 2}px ${dotColor}`,
                                         }}
                                     />
                                 </motion.span>
@@ -183,7 +188,7 @@ export const ConstellationLetters: React.FC<ConstellationLettersProps> = ({
                                         ? "blur(0px)"
                                         : `blur(${isStarPhase ? 8 : 2}px)`,
                                 }}
-                                transition={{ duration: duration * 0.2 }}
+                                transition={{ duration: safeDuration * 0.2 }}
                             >
                                 {char === " " ? "\u00A0" : char}
                             </motion.span>

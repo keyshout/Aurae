@@ -54,7 +54,7 @@ export default function Hero() {
 
       <GravitonButton
         particleCount={20}
-        color="#8b5cf6"
+        particleColor="#8b5cf6"
         onClick={() => console.log("clicked!")}
       >
         Launch

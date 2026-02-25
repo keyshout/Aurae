@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component MagneticInkText
@@ -19,7 +19,6 @@
  */
 
 import React, { useRef, useEffect, useCallback } from "react";
-import { useReducedMotion } from "framer-motion";
 
 interface CharState {
     x: number;
@@ -56,7 +55,6 @@ export const MagneticInkText: React.FC<MagneticInkTextProps> = ({
     className = "",
     ariaLabel,
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const containerRef = useRef<HTMLSpanElement>(null);
     const spanRefs = useRef<(HTMLSpanElement | null)[]>([]);
     const statesRef = useRef<CharState[]>(
@@ -172,3 +170,4 @@ export const MagneticInkText: React.FC<MagneticInkTextProps> = ({
 };
 
 export default MagneticInkText;
+

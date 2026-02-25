@@ -71,7 +71,6 @@ export const StreamText: React.FC<StreamTextProps> = ({
         <p className={`leading-relaxed ${className}`}>
             {words.map((word, i) => {
                 const isVisible = i < visibleCount;
-                const isRecent = i === visibleCount - 1 || i === visibleCount - 2;
 
                 return (
                     <motion.span

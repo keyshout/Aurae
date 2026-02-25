@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component EchoTrailHeadline
@@ -20,7 +20,7 @@
  */
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 export interface EchoTrailHeadlineProps {
     /** Text to display */
@@ -51,7 +51,6 @@ export const EchoTrailHeadline: React.FC<EchoTrailHeadlineProps> = ({
     className = "",
     ariaLabel,
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const containerRef = useRef<HTMLDivElement>(null);
     const [isActive, setIsActive] = useState(false);
     const [isMerging, setIsMerging] = useState(false);
@@ -148,3 +147,4 @@ export const EchoTrailHeadline: React.FC<EchoTrailHeadlineProps> = ({
 };
 
 export default EchoTrailHeadline;
+

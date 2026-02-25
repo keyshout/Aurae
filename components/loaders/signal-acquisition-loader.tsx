@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component SignalAcquisitionLoader
@@ -14,7 +14,8 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { toPositiveInt, toPositiveNumber } from "../../lib/utils";
 
 export interface SignalAcquisitionLoaderProps {
     /** Loader size. Default: 80 */
@@ -36,10 +37,12 @@ export const SignalAcquisitionLoader: React.FC<SignalAcquisitionLoaderProps> = (
     segments = 4,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const [lockedSegments, setLockedSegments] = useState<number[]>([]);
     const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
-    const dur = 3 / speed;
+    const safeSize = toPositiveNumber(size, 80, 1);
+    const safeSpeed = toPositiveNumber(speed, 1, 0.01);
+    const safeSegments = toPositiveInt(segments, 4, 1);
+    const dur = 3 / safeSpeed;
 
     useEffect(() => {
         // Clear any previous timers
@@ -52,7 +55,7 @@ export const SignalAcquisitionLoader: React.FC<SignalAcquisitionLoaderProps> = (
         };
 
         // Initial lock sequence
-        for (let i = 0; i < segments; i++) {
+        for (let i = 0; i < safeSegments; i++) {
             addTimer(() => {
                 setLockedSegments((prev) => [...prev, i]);
             }, dur * 250 * (i + 1));
@@ -61,36 +64,36 @@ export const SignalAcquisitionLoader: React.FC<SignalAcquisitionLoaderProps> = (
         // Reset after all segments lock
         addTimer(() => {
             setLockedSegments([]);
-        }, dur * 250 * (segments + 1));
+        }, dur * 250 * (safeSegments + 1));
 
         // Repeating cycle
         const interval = setInterval(() => {
             setLockedSegments([]);
-            for (let i = 0; i < segments; i++) {
+            for (let i = 0; i < safeSegments; i++) {
                 addTimer(() => {
                     setLockedSegments((prev) => [...prev, i]);
                 }, dur * 250 * (i + 1));
             }
-        }, dur * 250 * (segments + 2));
+        }, dur * 250 * (safeSegments + 2));
 
         return () => {
             timerRefs.current.forEach(clearTimeout);
             timerRefs.current = [];
             clearInterval(interval);
         };
-    }, [dur, segments]);
+    }, [dur, safeSegments]);
 
-    const segmentSize = size / segments;
+    const segmentSize = safeSize / safeSegments;
 
     return (
         <div
             className={`relative ${className}`}
-            style={{ width: size, height: size }}
+            style={{ width: safeSize, height: safeSize }}
             role="progressbar"
             aria-label="Acquiring signal"
         >
             {/* Target segments */}
-            {Array.from({ length: segments }, (_, i) => {
+            {Array.from({ length: safeSegments }, (_, i) => {
                 const isLocked = lockedSegments.includes(i);
                 const row = Math.floor(i / 2);
                 const col = i % 2;
@@ -136,7 +139,7 @@ export const SignalAcquisitionLoader: React.FC<SignalAcquisitionLoaderProps> = (
             <motion.div
                 className="absolute left-0 right-0 h-0.5"
                 style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
-                animate={{ top: [0, size, 0] }}
+                animate={{ top: [0, safeSize, 0] }}
                 transition={{ duration: dur * 0.5, repeat: Infinity, ease: "linear" }}
                 aria-hidden="true"
             />
@@ -157,3 +160,4 @@ export const SignalAcquisitionLoader: React.FC<SignalAcquisitionLoaderProps> = (
 };
 
 export default SignalAcquisitionLoader;
+

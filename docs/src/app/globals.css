@@ -1,33 +1,24 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+@theme {
+  --color-primary: #4b2bee;
+  --color-primary-hover: #3a21b8;
+  --color-secondary: #00f0ff;
+  --color-background-light: #f6f6f8;
+  --color-background-dark: #0a0a0c;
+  --color-surface-dark: #141122;
+  --color-border-dark: #292348;
+  --color-text-secondary: #9b92c9;
+
+  --font-display: var(--font-manrope), "Manrope", sans-serif;
+  --font-sans: var(--font-manrope), "Manrope", sans-serif;
+  --font-mono: "Fira Code", monospace;
+
+  --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+@layer base {
+  body {
+    @apply bg-background-dark text-slate-100 font-display antialiased selection:bg-primary/30 selection:text-white;
   }
 }

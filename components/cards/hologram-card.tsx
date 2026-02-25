@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component HologramCard
@@ -18,7 +18,7 @@
  */
 
 import React, { useRef, useState, useCallback } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface HologramCardProps {
     /** Card children */
@@ -37,7 +37,6 @@ export const HologramCard: React.FC<HologramCardProps> = ({
     saturation = 80,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const cardRef = useRef<HTMLDivElement>(null);
     const [pointer, setPointer] = useState({ x: 50, y: 50 });
     const [isHovered, setIsHovered] = useState(false);
@@ -134,3 +133,4 @@ export const HologramCard: React.FC<HologramCardProps> = ({
 };
 
 export default HologramCard;
+

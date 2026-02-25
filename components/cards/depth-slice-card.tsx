@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component DepthSliceCard
@@ -20,7 +20,7 @@
  */
 
 import React, { useState, useMemo } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface DepthSliceCardProps {
     /** Card children */
@@ -42,7 +42,6 @@ export const DepthSliceCard: React.FC<DepthSliceCardProps> = ({
     stagger = 0.04,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const [isHovered, setIsHovered] = useState(false);
 
     const slices = useMemo(
@@ -120,3 +119,4 @@ export const DepthSliceCard: React.FC<DepthSliceCardProps> = ({
 };
 
 export default DepthSliceCard;
+

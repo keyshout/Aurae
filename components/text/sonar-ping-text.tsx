@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component SonarPingText
@@ -21,7 +21,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface SonarPingTextProps {
     /** Text to display */
@@ -52,7 +52,6 @@ export const SonarPingText: React.FC<SonarPingTextProps> = ({
     className = "",
     ariaLabel,
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const [charIntensities, setCharIntensities] = useState<number[]>(
         () => new Array(text.length).fill(0)
     );
@@ -133,3 +132,4 @@ export const SonarPingText: React.FC<SonarPingTextProps> = ({
 };
 
 export default SonarPingText;
+

@@ -4,7 +4,7 @@
  * @component BlueprintLoader
  * @description Before content loads, an engineering wireframe sketch is drawn.
  * When data arrives, real UI settles on top.
- * Based on sequential SVG stroke draw animation.
+ * Based on sequential line draw animation.
  *
  * @example
  * ```tsx
@@ -21,6 +21,7 @@
 
 import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { toPositiveNumber } from "../../lib/utils";
 
 export interface BlueprintLoaderProps {
     /** Whether the loader is active. Default: true */
@@ -48,31 +49,42 @@ export const BlueprintLoader: React.FC<BlueprintLoaderProps> = ({
     const prefersReducedMotion = useReducedMotion();
     if (!isLoading) return null;
 
-    const dur = 1.5 / speed;
+    const safeWidth = toPositiveNumber(width, 300, 1);
+    const safeHeight = toPositiveNumber(height, 200, 1);
+    const safeSpeed = toPositiveNumber(speed, 1, 0.01);
+    const dur = 1.5 / safeSpeed;
+    const stroke = 1.5;
 
-    // Blueprint wireframe paths
-    const paths = [
-        // Header bar
-        `M 20 20 L ${width - 20} 20`,
-        `M 20 20 L 20 50 L ${width - 20} 50 L ${width - 20} 20`,
-        // Content blocks
-        `M 20 65 L ${width * 0.6} 65 L ${width * 0.6} 90 L 20 90 Z`,
-        `M ${width * 0.65} 65 L ${width - 20} 65 L ${width - 20} 90 L ${width * 0.65} 90 Z`,
-        // Text lines
-        `M 20 105 L ${width * 0.7} 105`,
-        `M 20 120 L ${width * 0.5} 120`,
-        `M 20 135 L ${width * 0.8} 135`,
-        // Bottom bar
-        `M 20 ${height - 40} L ${width - 20} ${height - 40} L ${width - 20} ${height - 20} L 20 ${height - 20} Z`,
-        // Grid reference marks
-        `M 10 10 L 10 15`, `M 10 10 L 15 10`,
-        `M ${width - 10} 10 L ${width - 10} 15`, `M ${width - 10} 10 L ${width - 15} 10`,
+    const lines = [
+        { x: 20, y: 20, w: safeWidth - 40, h: stroke },
+        { x: 20, y: 50, w: safeWidth - 40, h: stroke },
+        { x: 20, y: 20, w: stroke, h: 30 },
+        { x: safeWidth - 20, y: 20, w: stroke, h: 30 },
+        { x: 20, y: 65, w: safeWidth * 0.6 - 20, h: stroke },
+        { x: 20, y: 90, w: safeWidth * 0.6 - 20, h: stroke },
+        { x: 20, y: 65, w: stroke, h: 25 },
+        { x: safeWidth * 0.6, y: 65, w: stroke, h: 25 },
+        { x: safeWidth * 0.65, y: 65, w: safeWidth - 20 - safeWidth * 0.65, h: stroke },
+        { x: safeWidth * 0.65, y: 90, w: safeWidth - 20 - safeWidth * 0.65, h: stroke },
+        { x: safeWidth * 0.65, y: 65, w: stroke, h: 25 },
+        { x: safeWidth - 20, y: 65, w: stroke, h: 25 },
+        { x: 20, y: 105, w: safeWidth * 0.7 - 20, h: stroke },
+        { x: 20, y: 120, w: safeWidth * 0.5 - 20, h: stroke },
+        { x: 20, y: 135, w: safeWidth * 0.8 - 20, h: stroke },
+        { x: 20, y: safeHeight - 40, w: safeWidth - 40, h: stroke },
+        { x: 20, y: safeHeight - 20, w: safeWidth - 40, h: stroke },
+        { x: 20, y: safeHeight - 40, w: stroke, h: 20 },
+        { x: safeWidth - 20, y: safeHeight - 40, w: stroke, h: 20 },
+        { x: 10, y: 10, w: stroke, h: 5 },
+        { x: 10, y: 10, w: 5, h: stroke },
+        { x: safeWidth - 10, y: 10, w: stroke, h: 5 },
+        { x: safeWidth - 15, y: 10, w: 5, h: stroke },
     ];
 
     return (
         <div
             className={`relative ${className}`}
-            style={{ width, height }}
+            style={{ width: safeWidth, height: safeHeight }}
             role="progressbar"
             aria-label="Loading content"
         >
@@ -89,51 +101,50 @@ export const BlueprintLoader: React.FC<BlueprintLoaderProps> = ({
                 aria-hidden="true"
             />
 
-            <svg
-                className="absolute inset-0"
-                width={width}
-                height={height}
-                aria-hidden="true"
-            >
-                {paths.map((d, i) => (
-                    <motion.path
-                        key={i}
-                        d={d}
-                        fill="none"
-                        stroke={lineColor}
-                        strokeWidth={1.5}
-                        strokeLinecap="round"
-                        initial={{ pathLength: 0, opacity: 0 }}
-                        animate={{ pathLength: 1, opacity: 0.6 }}
-                        transition={{
-                            pathLength: {
+            <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+                {lines.map((line, i) => {
+                    const isHorizontal = line.w >= line.h;
+                    return (
+                        <motion.div
+                            key={i}
+                            className="absolute rounded-full"
+                            style={{
+                                left: line.x,
+                                top: line.y,
+                                width: Math.max(stroke, line.w),
+                                height: Math.max(stroke, line.h),
+                                background: lineColor,
+                                transformOrigin: isHorizontal ? "left center" : "center top",
+                            }}
+                            initial={isHorizontal ? { scaleX: 0, opacity: 0 } : { scaleY: 0, opacity: 0 }}
+                            animate={isHorizontal ? { scaleX: 1, opacity: 0.6 } : { scaleY: 1, opacity: 0.6 }}
+                            transition={{
                                 duration: dur,
-                                delay: i * 0.15 / speed,
+                                delay: i * 0.08 / safeSpeed,
                                 ease: "easeInOut",
-                            },
-                            opacity: { duration: 0.3, delay: i * 0.15 / speed },
-                        }}
-                    />
-                ))}
+                            }}
+                        />
+                    );
+                })}
 
-                {/* Scanning line */}
-                <motion.line
-                    x1={0}
-                    y1={0}
-                    x2={width}
-                    y2={0}
-                    stroke={lineColor}
-                    strokeWidth={2}
-                    strokeOpacity={0.3}
-                    animate={{ y1: [0, height, 0], y2: [0, height, 0] }}
-                    transition={{
-                        duration: 3 / speed,
-                        repeat: Infinity,
-                        ease: "easeInOut",
+                <motion.div
+                    className="absolute left-0 right-0 h-0.5"
+                    style={{
+                        background: `linear-gradient(90deg, transparent, ${lineColor}, transparent)`,
+                        boxShadow: `0 0 4px ${lineColor}`,
                     }}
-                    style={{ filter: `drop-shadow(0 0 4px ${lineColor})` }}
+                    animate={prefersReducedMotion ? undefined : { top: [0, safeHeight, 0] }}
+                    transition={
+                        prefersReducedMotion
+                            ? undefined
+                            : {
+                                duration: 3 / safeSpeed,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                            }
+                    }
                 />
-            </svg>
+            </div>
         </div>
     );
 };

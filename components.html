@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Aurae - Staggered Text</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4b2bee",
+                        "primary-hover": "#3a21b8",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#131022",
+                        "surface-dark": "#1c1833",
+                        "border-dark": "#2d2652",
+                        "text-secondary": "#9b92c9",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["Fira Code", "monospace"],
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #131022;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2d2652;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b2bee;
+        }
+
+        .code-syntax .keyword {
+            color: #c678dd;
+        }
+
+        .code-syntax .function {
+            color: #61afef;
+        }
+
+        .code-syntax .string {
+            color: #98c379;
+        }
+
+        .code-syntax .tag {
+            color: #e06c75;
+        }
+
+        .code-syntax .attr {
+            color: #d19a66;
+        }
+
+        .code-syntax .comment {
+            color: #5c6370;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen flex flex-col overflow-hidden">
+    <!-- Top Navigation -->
+    <header
+        class="sticky top-0 z-50 flex items-center justify-between border-b border-solid border-gray-200 dark:border-border-dark bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 py-3">
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-3 text-primary">
+                <div class="size-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-2xl">auto_awesome</span>
+                </div>
+                <h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight">Aurae</h2>
+            </div>
+            <!-- Search Bar -->
+            <label class="hidden md:flex relative group min-w-[240px]">
+                <div
+                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-xl">search</span>
+                </div>
+                <input
+                    class="block w-full rounded-lg border-0 bg-slate-100 dark:bg-surface-dark py-2 pl-10 pr-3 text-sm leading-5 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary text-slate-900 dark:text-white transition-all shadow-sm"
+                    placeholder="Search components..." type="text" />
+                <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                    <kbd
+                        class="inline-flex items-center border border-gray-200 dark:border-slate-700 rounded px-2 text-xs font-sans font-medium text-slate-400">⌘K</kbd>
+                </div>
+            </label>
+        </div>
+        <div class="flex items-center gap-4">
+            <nav class="hidden lg:flex items-center gap-6 mr-4">
+                <a class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors"
+                    href="#">Docs</a>
+                <a class="text-sm font-medium text-primary" href="#">Components</a>
+                <a class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors"
+                    href="#">Showcase</a>
+                <a class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors"
+                    href="#">Blog</a>
+            </nav>
+            <div class="flex items-center gap-2 border-l border-gray-200 dark:border-border-dark pl-4">
+                <button
+                    class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-surface-dark transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">light_mode</span>
+                </button>
+                <button
+                    class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-surface-dark transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">hub</span>
+                </button>
+                <div class="size-8 rounded-full bg-gradient-to-br from-primary to-purple-400 ml-2"
+                    data-alt="User Avatar Gradient"></div>
+            </div>
+        </div>
+    </header>
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Left Sidebar -->
+        <aside
+            class="hidden lg:flex w-64 flex-col border-r border-gray-200 dark:border-border-dark bg-gray-50 dark:bg-background-dark overflow-y-auto pb-10">
+            <div class="p-4 space-y-8">
+                <!-- Section 1 -->
+                <div>
+                    <h3
+                        class="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                        Getting Started</h3>
+                    <div class="space-y-1">
+                        <a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-surface-dark hover:text-primary transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+                            Installation
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-surface-dark hover:text-primary transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined text-[18px]">integration_instructions</span>
+                            Theming
+                        </a>
+                    </div>
+                </div>
+                <!-- Section 2 -->
+                <div>
+                    <h3
+                        class="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                        Text Animations</h3>
+                    <div class="space-y-1">
+                        <a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg bg-primary/10 text-primary dark:text-primary"
+                            href="#">
+                            <span class="material-symbols-outlined text-[18px] fill-current">title</span>
+                            Staggered Text
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-surface-dark hover:text-primary transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined text-[18px]">format_strikethrough</span>
+                            Typewriter
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-surface-dark hover:text-primary transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined text-[18px]">gradient</span>
+                            Gradient Text
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-surface-dark hover:text-primary transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined text-[18px]">motion_photos_on</span>
+                            Fade In
+                        </a>
+                    </div>
+                </div>
+                <!-- Section 3 -->
+                <div>
+                    <h3
+                        class="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                        Components</h3>
+                    <div class="space-y-1">
+                        <a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-surface-dark hover:text-primary transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined text-[18px]">smart_button</span>
+                            Buttons
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-surface-dark hover:text-primary transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined text-[18px]">cards</span>
+                            Cards
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-surface-dark hover:text-primary transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined text-[18px]">view_quilt</span>
+                            Layouts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-8 lg:p-12 scroll-smooth">
+            <div class="max-w-4xl mx-auto">
+                <!-- Breadcrumbs -->
+                <div class="flex items-center gap-2 text-sm text-text-secondary mb-6">
+                    <span class="hover:text-primary cursor-pointer">Components</span>
+                    <span class="material-symbols-outlined text-xs">chevron_right</span>
+                    <span class="hover:text-primary cursor-pointer">Text Animations</span>
+                    <span class="material-symbols-outlined text-xs">chevron_right</span>
+                    <span class="text-primary font-medium">Staggered Text</span>
+                </div>
+                <!-- Header -->
+                <div class="mb-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            Staggered Text</h1>
+                        <span
+                            class="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider border border-primary/20">v1.0.2</span>
+                    </div>
+                    <p class="text-lg text-slate-600 dark:text-text-secondary max-w-2xl leading-relaxed">
+                        A highly customizable text reveal animation that splits text into characters or words for a
+                        smooth, staggered entrance effect. Perfect for hero sections and impactful headings.
+                    </p>
+                </div>
+                <!-- Preview Area -->
+                <div class="mb-10">
+                    <div
+                        class="relative w-full aspect-video md:aspect-[21/9] rounded-xl border border-gray-200 dark:border-border-dark bg-white dark:bg-surface-dark shadow-lg overflow-hidden flex flex-col group">
+                        <!-- Toolbar -->
+                        <div
+                            class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-border-dark/50 bg-gray-50/50 dark:bg-background-dark/30">
+                            <div class="flex items-center gap-2">
+                                <div class="size-3 rounded-full bg-red-400/80"></div>
+                                <div class="size-3 rounded-full bg-yellow-400/80"></div>
+                                <div class="size-3 rounded-full bg-green-400/80"></div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button
+                                    class="text-xs font-medium text-slate-500 hover:text-primary transition-colors flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                                    Replay
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Actual Preview Content -->
+                        <div
+                            class="flex-1 flex items-center justify-center p-8 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100 via-white to-white dark:from-surface-dark dark:via-background-dark dark:to-black">
+                            <div class="text-center">
+                                <h2 class="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-400 to-pink-500 animate-pulse"
+                                    style="animation-duration: 3s;">
+                                    Make an Impact
+                                </h2>
+                                <p class="mt-4 text-slate-500 dark:text-slate-400 font-medium tracking-wide">
+                                    Aurae UI Library
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Tabs & Code -->
+                <div class="mb-12">
+                    <div class="flex items-center border-b border-gray-200 dark:border-border-dark mb-0">
+                        <button class="px-6 py-3 text-sm font-semibold border-b-2 border-primary text-primary">
+                            Preview
+                        </button>
+                        <button
+                            class="px-6 py-3 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-slate-300 dark:hover:border-slate-600">
+                            Code
+                        </button>
+                        <button
+                            class="px-6 py-3 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-slate-300 dark:hover:border-slate-600">
+                            Props
+                        </button>
+                    </div>
+                    <div
+                        class="relative bg-[#282c34] rounded-b-xl rounded-tr-xl overflow-hidden shadow-xl border border-t-0 border-gray-200 dark:border-border-dark">
+                        <div class="absolute top-4 right-4">
+                            <button
+                                class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm group relative"
+                                title="Copy Code">
+                                <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                                <span
+                                    class="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Copy
+                                    to clipboard</span>
+                            </button>
+                        </div>
+                        <div class="p-6 overflow-x-auto font-mono text-sm leading-relaxed text-gray-300">
+                            <pre class="code-syntax"><code><span class="keyword">import</span> { StaggeredText } <span class="keyword">from</span> <span class="string">'@aurae/text'</span>;
+
+<span class="keyword">export default function</span> <span class="function">HeroSection</span>() {
+  <span class="keyword">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="string">"flex items-center justify-center h-screen"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;StaggeredText</span>
+        <span class="attr">text</span>=<span class="string">"Make an Impact"</span>
+        <span class="attr">stagger</span>=<span class="string">{0.05}</span>
+        <span class="attr">className</span>=<span class="string">"text-6xl font-black gradient-text"</span>
+      <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                <!-- Installation Section -->
+                <div class="mb-12" id="installation">
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">terminal</span>
+                        Installation
+                    </h2>
+                    <div
+                        class="bg-slate-100 dark:bg-surface-dark rounded-lg p-4 border border-gray-200 dark:border-border-dark flex items-center justify-between font-mono text-sm text-slate-700 dark:text-slate-300">
+                        <span>npm install @aurae/text framer-motion</span>
+                        <button
+                            class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-background-dark text-slate-500 hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Props Section -->
+                <div class="mb-12" id="props">
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Props</h2>
+                    <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-border-dark">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead
+                                class="bg-gray-50 dark:bg-surface-dark border-b border-gray-200 dark:border-border-dark">
+                                <tr>
+                                    <th class="px-6 py-4 font-semibold text-slate-900 dark:text-white w-1/4">Prop</th>
+                                    <th class="px-6 py-4 font-semibold text-slate-900 dark:text-white w-1/4">Type</th>
+                                    <th class="px-6 py-4 font-semibold text-slate-900 dark:text-white w-1/4">Default
+                                    </th>
+                                    <th class="px-6 py-4 font-semibold text-slate-900 dark:text-white">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody
+                                class="divide-y divide-gray-200 dark:divide-border-dark bg-white dark:bg-background-dark">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-surface-dark/50 transition-colors">
+                                    <td class="px-6 py-4 font-mono text-primary font-medium">text</td>
+                                    <td class="px-6 py-4 font-mono text-pink-500">string</td>
+                                    <td class="px-6 py-4 font-mono text-slate-500">-</td>
+                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">The text content to
+                                        animate.</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-surface-dark/50 transition-colors">
+                                    <td class="px-6 py-4 font-mono text-primary font-medium">stagger</td>
+                                    <td class="px-6 py-4 font-mono text-pink-500">number</td>
+                                    <td class="px-6 py-4 font-mono text-slate-500">0.05</td>
+                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">Delay between each
+                                        character animation in seconds.</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-surface-dark/50 transition-colors">
+                                    <td class="px-6 py-4 font-mono text-primary font-medium">once</td>
+                                    <td class="px-6 py-4 font-mono text-pink-500">boolean</td>
+                                    <td class="px-6 py-4 font-mono text-slate-500">true</td>
+                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">Whether the animation
+                                        should only play once when in view.</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-surface-dark/50 transition-colors">
+                                    <td class="px-6 py-4 font-mono text-primary font-medium">className</td>
+                                    <td class="px-6 py-4 font-mono text-pink-500">string</td>
+                                    <td class="px-6 py-4 font-mono text-slate-500">""</td>
+                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">Additional CSS classes for
+                                        styling the container.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Right Sidebar (On This Page) -->
+        <aside class="hidden xl:block w-64 pr-8 pt-12">
+            <div class="sticky top-24">
+                <h4
+                    class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 pl-3 border-l-2 border-transparent">
+                    On This Page</h4>
+                <nav class="flex flex-col space-y-1">
+                    <a class="text-sm text-primary font-medium pl-3 border-l-2 border-primary py-1 transition-colors"
+                        href="#">
+                        Overview
+                    </a>
+                    <a class="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white pl-3 border-l-2 border-transparent py-1 transition-colors"
+                        href="#installation">
+                        Installation
+                    </a>
+                    <a class="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white pl-3 border-l-2 border-transparent py-1 transition-colors"
+                        href="#usage">
+                        Usage
+                    </a>
+                    <a class="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white pl-3 border-l-2 border-transparent py-1 transition-colors"
+                        href="#props">
+                        Props
+                    </a>
+                    <a class="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white pl-3 border-l-2 border-transparent py-1 transition-colors"
+                        href="#examples">
+                        Examples
+                    </a>
+                </nav>
+                <div
+                    class="mt-8 p-4 rounded-xl bg-gradient-to-br from-primary/10 to-purple-500/10 border border-primary/20">
+                    <p class="text-xs font-semibold text-primary mb-2">Have questions?</p>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Join our community of developers on
+                        Discord.</p>
+                    <button
+                        class="w-full py-1.5 px-3 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30">
+                        Join Discord
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component BreathingGlowHalo
@@ -17,7 +17,7 @@
  */
 
 import React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface BreathingGlowHaloProps {
     /** Content to wrap with the halo */
@@ -48,7 +48,6 @@ export const BreathingGlowHalo: React.FC<BreathingGlowHaloProps> = ({
     innerOpacity = 0.5,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     return (
         <div
             className={`relative inline-flex items-center justify-center ${className}`}
@@ -118,3 +117,4 @@ export const BreathingGlowHalo: React.FC<BreathingGlowHaloProps> = ({
 };
 
 export default BreathingGlowHalo;
+

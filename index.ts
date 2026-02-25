@@ -98,7 +98,16 @@ export { useSignalPulse } from "./hooks/useSignalPulse";
 export { useMorphText } from "./hooks/useMorphText";
 
 // ─── Utilities ──────────────────────────────────────────────────
-export { hexToRgb, hexToRgbString, clamp, lerp, mapRange } from "./lib/utils";
+export {
+  hexToRgb,
+  hexToRgbString,
+  clamp,
+  lerp,
+  mapRange,
+  toFiniteNumber,
+  toPositiveNumber,
+  toPositiveInt,
+} from "./lib/utils";
 
 // ─── Types (Batch 1) ────────────────────────────────────────────
 export type { ScrambleTextProps } from "./components/text/scramble-text";

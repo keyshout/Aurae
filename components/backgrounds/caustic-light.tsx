@@ -3,8 +3,8 @@
 /**
  * @component CausticLight
  * @description Underwater light refraction patterns — organic, shimmering pools of light
- * using SVG turbulence and displacement filters.
- * Principle: feTurbulence + feDisplacementMap light caustic simulation.
+ * using layered gradients and blur fields.
+ * Principle: multi-layer radial/repeating gradients with drift animation.
  *
  * @example
  * ```tsx
@@ -14,8 +14,9 @@
  * ```
  */
 
-import React, { useId } from "react";
+import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { toPositiveNumber } from "../../lib/utils";
 
 export interface CausticLightProps {
     /** Light color. Default: "#06b6d4" */
@@ -35,85 +36,87 @@ export const CausticLight: React.FC<CausticLightProps> = ({
     className = "",
 }) => {
     const prefersReducedMotion = useReducedMotion();
-    const filterId = useId();
-    const gradId = useId();
+    const safeSpeed = toPositiveNumber(speed, 1, 0.01);
+    const safeIntensity = Math.max(0, Math.min(1, intensity));
 
     return (
         <div className={`relative overflow-hidden ${className}`} role="presentation" aria-hidden="true">
-            <svg className="absolute inset-0 w-full h-full">
-                <defs>
-                    <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%">
-                        <feTurbulence
-                            type="fractalNoise"
-                            baseFrequency="0.015 0.02"
-                            numOctaves={3}
-                            seed={42}
-                            result="noise"
-                        >
-                            {!prefersReducedMotion && (
-                                <animate
-                                    attributeName="baseFrequency"
-                                    dur={`${20 / speed}s`}
-                                    values="0.015 0.02;0.02 0.015;0.015 0.02"
-                                    repeatCount="indefinite"
-                                />
-                            )}
-                        </feTurbulence>
-                        <feDisplacementMap
-                            in="SourceGraphic"
-                            in2="noise"
-                            scale={40}
-                            xChannelSelector="R"
-                            yChannelSelector="G"
-                        />
-                        <feGaussianBlur stdDeviation={2} />
-                    </filter>
-                    <radialGradient id={gradId} cx="50%" cy="50%" r="70%">
-                        <stop offset="0%" stopColor={color} stopOpacity={intensity} />
-                        <stop offset="40%" stopColor={color} stopOpacity={intensity * 0.6} />
-                        <stop offset="100%" stopColor={color} stopOpacity={0} />
-                    </radialGradient>
-                </defs>
+            <div
+                className="absolute inset-0"
+                style={{
+                    background: `radial-gradient(circle at 50% 50%, ${color}${Math.round(safeIntensity * 255).toString(16).padStart(2, "0")} 0%, transparent 70%)`,
+                }}
+            />
 
-                {/* Caustic light layer 1 */}
-                <motion.rect
-                    x="-10%"
-                    y="-10%"
-                    width="120%"
-                    height="120%"
-                    fill={`url(#${gradId})`}
-                    filter={`url(#${filterId})`}
-                    animate={prefersReducedMotion ? {} : {
-                        x: ["-10%", "-5%", "-10%"],
-                        y: ["-10%", "-15%", "-10%"],
-                    }}
-                    transition={{
-                        duration: 15 / speed,
-                        repeat: Infinity,
-                        ease: "linear",
-                    }}
-                />
+            <motion.div
+                className="absolute -inset-[12%]"
+                style={{
+                    opacity: safeIntensity * 0.8,
+                    background: `
+                        repeating-radial-gradient(
+                            circle at 30% 40%,
+                            ${color}55 0 10px,
+                            transparent 12px 28px
+                        ),
+                        repeating-radial-gradient(
+                            circle at 70% 60%,
+                            ${color}44 0 8px,
+                            transparent 10px 24px
+                        )
+                    `,
+                    filter: "blur(10px)",
+                    mixBlendMode: "screen",
+                }}
+                animate={
+                    prefersReducedMotion
+                        ? undefined
+                        : {
+                            backgroundPosition: ["0% 0%, 0% 0%", "20% -10%, -15% 20%", "0% 0%, 0% 0%"],
+                            x: ["-4%", "2%", "-4%"],
+                            y: ["-2%", "3%", "-2%"],
+                        }
+                }
+                transition={
+                    prefersReducedMotion
+                        ? undefined
+                        : {
+                            duration: 18 / safeSpeed,
+                            repeat: Infinity,
+                            ease: "linear",
+                        }
+                }
+            />
 
-                {/* Caustic light layer 2 — offset for complexity */}
-                <motion.rect
-                    x="-5%"
-                    y="-5%"
-                    width="110%"
-                    height="110%"
-                    fill={`url(#${gradId})`}
-                    filter={`url(#${filterId})`}
-                    opacity={0.5}
-                    animate={prefersReducedMotion ? {} : {
-                        x: ["-5%", "-15%", "-5%"],
-                        y: ["-5%", "0%", "-5%"],
-                    }}
-                    transition={{
-                        duration: 22 / speed,
-                        repeat: Infinity,
-                        ease: "linear",
-                    }}
-                />
-            </svg>
+            <motion.div
+                className="absolute -inset-[8%]"
+                style={{
+                    opacity: safeIntensity * 0.55,
+                    background: `
+                        radial-gradient(circle at 40% 35%, ${color}66 0%, transparent 55%),
+                        radial-gradient(circle at 65% 65%, ${color}50 0%, transparent 60%)
+                    `,
+                    filter: "blur(18px)",
+                    mixBlendMode: "screen",
+                }}
+                animate={
+                    prefersReducedMotion
+                        ? undefined
+                        : {
+                            x: ["-2%", "5%", "-2%"],
+                            y: ["0%", "-4%", "0%"],
+                            scale: [1, 1.08, 1],
+                        }
+                }
+                transition={
+                    prefersReducedMotion
+                        ? undefined
+                        : {
+                            duration: 22 / safeSpeed,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                        }
+                }
+            />
         </div>
     );
 };

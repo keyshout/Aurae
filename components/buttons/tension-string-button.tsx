@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component TensionStringButton
@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useCallback } from "react";
-import { motion, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 
 export interface TensionStringButtonProps {
     /** Button content */
@@ -45,7 +45,6 @@ export const TensionStringButton: React.FC<TensionStringButtonProps> = ({
     disabled = false,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const [isPressed, setIsPressed] = useState(false);
     const x = useMotionValue(0);
     const scaleX = useTransform(x, [-50, 0, 50], [1 / maxStretch, 1, maxStretch]);
@@ -96,3 +95,4 @@ export const TensionStringButton: React.FC<TensionStringButtonProps> = ({
 };
 
 export default TensionStringButton;
+

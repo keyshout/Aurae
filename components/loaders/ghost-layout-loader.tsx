@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component GhostLayoutLoader
@@ -15,7 +15,8 @@
  */
 
 import React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { toPositiveNumber } from "../../lib/utils";
 
 export interface GhostLayoutLoaderProps {
     /** Active state. Default: true */
@@ -37,10 +38,10 @@ export const GhostLayoutLoader: React.FC<GhostLayoutLoaderProps> = ({
     speed = 1,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     if (!isLoading) return null;
 
-    const dur = 4 / speed;
+    const safeSpeed = toPositiveNumber(speed, 1, 0.01);
+    const dur = 4 / safeSpeed;
 
     const blocks = [
         { w: "100%", h: "36px", y: 0 },
@@ -96,3 +97,4 @@ export const GhostLayoutLoader: React.FC<GhostLayoutLoaderProps> = ({
 };
 
 export default GhostLayoutLoader;
+

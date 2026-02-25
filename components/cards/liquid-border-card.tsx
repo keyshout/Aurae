@@ -4,7 +4,7 @@
  * @component LiquidBorderCard
  * @description Card with an organically flowing, animated color border that moves
  * like liquid along the edges.
- * Based on SVG animated border + blur + color transition.
+ * Based on animated conic border + blur + color transition.
  *
  * @example
  * ```tsx
@@ -19,8 +19,9 @@
  * ```
  */
 
-import React, { useId } from "react";
+import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { toPositiveNumber } from "../../lib/utils";
 
 export interface LiquidBorderCardProps {
     /** Card children */
@@ -49,77 +50,34 @@ export const LiquidBorderCard: React.FC<LiquidBorderCardProps> = ({
     className = "",
 }) => {
     const prefersReducedMotion = useReducedMotion();
-    const id = useId();
-    const gradientId = `liquid-border-${id}`;
-    const dur = 6 / speed;
+    const safeColors = colors.length >= 2 ? colors : ["#f43f5e", "#8b5cf6"];
+    const safeBorderWidth = toPositiveNumber(borderWidth, 2, 0.1);
+    const safeSpeed = toPositiveNumber(speed, 1, 0.01);
+    const safeGlowBlur = toPositiveNumber(glowBlur, 12, 0.1);
+    const safeBorderRadius = toPositiveNumber(borderRadius, 16, 0);
+    const dur = 6 / safeSpeed;
 
     return (
         <div
             className={`relative ${className}`}
-            style={{ borderRadius }}
+            style={{ borderRadius: safeBorderRadius }}
             role="article"
         >
-            {/* Animated border SVG */}
-            <svg
-                className="absolute inset-0 w-full h-full pointer-events-none"
-                style={{ borderRadius, overflow: "visible" }}
-                aria-hidden="true"
-            >
-                <defs>
-                    <linearGradient id={gradientId} gradientUnits="userSpaceOnUse">
-                        {colors.map((color, i) => (
-                            <stop
-                                key={i}
-                                offset={`${(i / (colors.length - 1)) * 100}%`}
-                                stopColor={color}
-                            />
-                        ))}
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${dur}s`}
-                            repeatCount="indefinite"
-                        />
-                    </linearGradient>
-
-                    <filter id={`glow-${id}`}>
-                        <feGaussianBlur stdDeviation={glowBlur / 2} result="blur" />
-                        <feMerge>
-                            <feMergeNode in="blur" />
-                            <feMergeNode in="SourceGraphic" />
-                        </feMerge>
-                    </filter>
-                </defs>
-
-                <rect
-                    x={borderWidth / 2}
-                    y={borderWidth / 2}
-                    width={`calc(100% - ${borderWidth}px)`}
-                    height={`calc(100% - ${borderWidth}px)`}
-                    rx={borderRadius}
-                    ry={borderRadius}
-                    fill="none"
-                    stroke={`url(#${gradientId})`}
-                    strokeWidth={borderWidth}
-                    filter={`url(#glow-${id})`}
-                />
-            </svg>
-
             {/* Conic gradient border using CSS */}
             <motion.div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                    borderRadius,
-                    padding: borderWidth,
-                    background: `conic-gradient(from 0deg, ${colors.join(", ")}, ${colors[0]})`,
+                    borderRadius: safeBorderRadius,
+                    padding: safeBorderWidth,
+                    background: `conic-gradient(from 0deg, ${safeColors.join(", ")}, ${safeColors[0]})`,
                     WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
                     WebkitMaskComposite: "xor",
                     maskComposite: "exclude",
                 }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: dur, repeat: Infinity, ease: "linear" }}
+                animate={prefersReducedMotion ? undefined : { rotate: 360 }}
+                transition={
+                    prefersReducedMotion ? undefined : { duration: dur, repeat: Infinity, ease: "linear" }
+                }
                 aria-hidden="true"
             />
 
@@ -127,17 +85,19 @@ export const LiquidBorderCard: React.FC<LiquidBorderCardProps> = ({
             <motion.div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                    borderRadius,
-                    padding: borderWidth,
-                    background: `conic-gradient(from 180deg, ${colors.join(", ")}, ${colors[0]})`,
+                    borderRadius: safeBorderRadius,
+                    padding: safeBorderWidth,
+                    background: `conic-gradient(from 180deg, ${safeColors.join(", ")}, ${safeColors[0]})`,
                     WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
                     WebkitMaskComposite: "xor",
                     maskComposite: "exclude",
-                    filter: `blur(${glowBlur}px)`,
+                    filter: `blur(${safeGlowBlur}px)`,
                     opacity: 0.5,
                 }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: dur, repeat: Infinity, ease: "linear" }}
+                animate={prefersReducedMotion ? undefined : { rotate: 360 }}
+                transition={
+                    prefersReducedMotion ? undefined : { duration: dur, repeat: Infinity, ease: "linear" }
+                }
                 aria-hidden="true"
             />
 
@@ -145,8 +105,8 @@ export const LiquidBorderCard: React.FC<LiquidBorderCardProps> = ({
             <div
                 className="relative z-10 bg-gray-900 dark:bg-gray-950 h-full p-6"
                 style={{
-                    borderRadius: borderRadius - borderWidth,
-                    margin: borderWidth,
+                    borderRadius: Math.max(0, safeBorderRadius - safeBorderWidth),
+                    margin: safeBorderWidth,
                 }}
             >
                 {children}

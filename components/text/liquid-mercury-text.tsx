@@ -3,8 +3,8 @@
 /**
  * @component LiquidMercuryText
  * @description Characters flow and merge like liquid mercury, with metaball-style
- * surface tension at connection points using SVG filter effects.
- * Principle: SVG feMerge + feGaussianBlur metaball simulation.
+ * surface tension at connection points using layered blur/contrast.
+ * Principle: stacked text layers + blur/contrast blending.
  *
  * @example
  * ```tsx
@@ -17,8 +17,9 @@
  * ```
  */
 
-import React, { useId } from "react";
+import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { toPositiveNumber } from "../../lib/utils";
 
 export interface LiquidMercuryTextProps {
     /** Text to display */
@@ -47,36 +48,38 @@ export const LiquidMercuryText: React.FC<LiquidMercuryTextProps> = ({
     ariaLabel,
 }) => {
     const prefersReducedMotion = useReducedMotion();
-    const RawId = useId();
-    const filterId = `mercury-filter-${RawId.replace(/:/g, "")}`;
+    const safeBlurStrength = toPositiveNumber(blurStrength, 8, 0);
+    const safeThreshold = toPositiveNumber(threshold, 18, 1);
+    const safeStagger = toPositiveNumber(stagger, 0.06, 0);
+    const chars = text.split("");
 
     return (
         <span
-            className={`inline-block ${className}`}
+            className={`inline-block relative ${className}`}
             role="text"
             aria-label={ariaLabel || text}
         >
-            {/* SVG filter for metaball/liquid merge effect */}
-            <svg className="absolute w-0 h-0" aria-hidden="true">
-                <defs>
-                    <filter id={filterId} colorInterpolationFilters="sRGB">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation={blurStrength} result="blur" />
-                        <feColorMatrix
-                            in="blur"
-                            type="matrix"
-                            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10"
-                            result="sharp"
-                        />
-                        <feComposite in="SourceGraphic" in2="sharp" operator="atop" />
-                    </filter>
-                </defs>
-            </svg>
+            {!prefersReducedMotion && (
+                <span
+                    className="absolute inset-0 inline-flex pointer-events-none"
+                    style={{
+                        color,
+                        opacity: 0.65,
+                        filter: `blur(${safeBlurStrength}px) contrast(${safeThreshold * 8}%)`,
+                        mixBlendMode: "screen",
+                    }}
+                    aria-hidden="true"
+                >
+                    {chars.map((char, i) => (
+                        <span key={`blur-${i}`} className="inline-block">
+                            {char === " " ? "\u00A0" : char}
+                        </span>
+                    ))}
+                </span>
+            )}
 
-            <span
-                className="inline-flex"
-                style={{ filter: prefersReducedMotion ? "none" : `url(#${filterId})`, color }}
-            >
-                {text.split("").map((char, i) => (
+            <span className="relative z-10 inline-flex" style={{ color }}>
+                {chars.map((char, i) => (
                     <motion.span
                         key={i}
                         className="inline-block"
@@ -84,8 +87,11 @@ export const LiquidMercuryText: React.FC<LiquidMercuryTextProps> = ({
                         animate={{ opacity: 1, scaleX: 1, scaleY: 1 }}
                         transition={{
                             duration: prefersReducedMotion ? 0 : 0.6,
-                            delay: prefersReducedMotion ? 0 : i * stagger,
+                            delay: prefersReducedMotion ? 0 : i * safeStagger,
                             ease: [0.22, 1, 0.36, 1],
+                        }}
+                        style={{
+                            textShadow: prefersReducedMotion ? undefined : `0 0 ${safeBlurStrength * 1.5}px ${color}80`,
                         }}
                         aria-hidden="true"
                     >

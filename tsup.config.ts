@@ -1,15 +1,13 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-    entry: ['components/**/*.tsx', 'hooks/**/*.ts', 'lib/**/*.ts'],
+    entry: ['index.ts', 'components/**/*.tsx', 'hooks/**/*.ts', 'lib/**/*.ts'],
     format: ['esm', 'cjs'],
-    dts: true,
-    splitting: true,
+    dts: false,
+    bundle: false,
+    splitting: false,
     sourcemap: true,
     clean: true,
     external: ['react', 'react-dom', 'framer-motion'],
-    treeshake: true,
-    banner: {
-        js: '"use client"'
-    }
+    treeshake: true
 })

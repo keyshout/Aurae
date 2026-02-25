@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component PressureCard
@@ -18,7 +18,7 @@
  */
 
 import React, { useRef, useState, useCallback } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface PressureCardProps {
     /** Card children */
@@ -40,7 +40,6 @@ export const PressureCard: React.FC<PressureCardProps> = ({
     shadowIntensity = 0.3,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const cardRef = useRef<HTMLDivElement>(null);
     const [pointer, setPointer] = useState({ x: 50, y: 50 });
     const [isHovered, setIsHovered] = useState(false);
@@ -119,3 +118,4 @@ export const PressureCard: React.FC<PressureCardProps> = ({
 };
 
 export default PressureCard;
+

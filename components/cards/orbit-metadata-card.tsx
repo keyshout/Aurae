@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component OrbitMetadataCard
@@ -25,7 +25,7 @@
  */
 
 import React, { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface MetadataItem {
     /** Label text */
@@ -63,7 +63,6 @@ export const OrbitMetadataCard: React.FC<OrbitMetadataCardProps> = ({
     orbitDuration = 8,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -184,3 +183,4 @@ export const OrbitMetadataCard: React.FC<OrbitMetadataCardProps> = ({
 };
 
 export default OrbitMetadataCard;
+

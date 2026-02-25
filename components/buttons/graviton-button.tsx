@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component GravitonButton
@@ -21,7 +21,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface GravitonButtonProps {
     /** Button content */
@@ -49,7 +49,6 @@ export const GravitonButton: React.FC<GravitonButtonProps> = ({
     disabled = false,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const [isHovered, setIsHovered] = useState(false);
     const [bursts, setBursts] = useState<number[]>([]);
 
@@ -153,3 +152,4 @@ export const GravitonButton: React.FC<GravitonButtonProps> = ({
 };
 
 export default GravitonButton;
+

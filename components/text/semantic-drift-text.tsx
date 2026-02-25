@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component SemanticDriftText
@@ -19,7 +19,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 
 // Similar-looking glyph substitution map
 const GLYPH_MAP: Record<string, string[]> = {
@@ -85,7 +85,6 @@ export const SemanticDriftText: React.FC<SemanticDriftTextProps> = ({
     ariaLabel,
     onComplete,
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const containerRef = useRef<HTMLSpanElement>(null);
     const isInView = useInView(containerRef, { once: true, amount: 0.5 });
     const [charStates, setCharStates] = useState<
@@ -188,3 +187,4 @@ export const SemanticDriftText: React.FC<SemanticDriftTextProps> = ({
 };
 
 export default SemanticDriftText;
+

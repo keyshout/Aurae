@@ -4,7 +4,7 @@
  * @component TopographicalPulse
  * @description Contour map lines deform locally based on pointer position.
  * Clicking emits a ring-shaped wave that propagates outward.
- * Based on SVG path morph + mouse coordinate deformation.
+ * Canvas-based contour rendering.
  *
  * @example
  * ```tsx
@@ -18,8 +18,9 @@
  * ```
  */
 
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect } from "react";
 import { useReducedMotion } from "framer-motion";
+import { toPositiveInt, toPositiveNumber } from "../../lib/utils";
 
 export interface TopographicalPulseProps {
     /** Number of contour lines. Default: 15 */
@@ -43,7 +44,6 @@ interface Pulse {
     y: number;
     radius: number;
     opacity: number;
-    id: number;
 }
 
 export const TopographicalPulse: React.FC<TopographicalPulseProps> = ({
@@ -56,50 +56,87 @@ export const TopographicalPulse: React.FC<TopographicalPulseProps> = ({
     className = "",
 }) => {
     const prefersReducedMotion = useReducedMotion();
-    const svgRef = useRef<SVGSVGElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const pointerRef = useRef({ x: -9999, y: -9999 });
     const pulsesRef = useRef<Pulse[]>([]);
-    const pulseIdRef = useRef(0);
-    const rafRef = useRef<number>(0);
-    const [paths, setPaths] = useState<string[]>([]);
-    const [pulses, setPulses] = useState<Pulse[]>([]);
 
-    const generatePaths = useCallback(() => {
-        const svg = svgRef.current;
-        if (!svg) return;
+    const safeLineCount = toPositiveInt(lineCount, 15, 1);
+    const safeLineOpacity = Math.max(0, Math.min(1, toPositiveNumber(lineOpacity, 0.3, 0)));
+    const safeDeformRadius = toPositiveNumber(deformRadius, 120, 1);
+    const safeDeformStrength = toPositiveNumber(deformStrength, 30, 0);
+    const safePulseSpeed = toPositiveNumber(pulseSpeed, 3, 0.01);
 
-        const rect = svg.getBoundingClientRect();
-        const w = rect.width;
-        const h = rect.height;
-        const pointer = pointerRef.current;
-        const activePulses = pulsesRef.current;
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-        const newPaths: string[] = [];
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
 
-        for (let i = 0; i < lineCount; i++) {
-            const baseY = (h / (lineCount + 1)) * (i + 1);
-            const points: string[] = [];
+        let frame = 0;
+        let resizeObserver: ResizeObserver | null = null;
+        let drawWidth = 0;
+        let drawHeight = 0;
+
+        const resize = () => {
+            const rect = canvas.getBoundingClientRect();
+            drawWidth = Math.max(1, rect.width);
+            drawHeight = Math.max(1, rect.height);
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = Math.max(1, Math.floor(drawWidth * dpr));
+            canvas.height = Math.max(1, Math.floor(drawHeight * dpr));
+            canvas.style.width = `${drawWidth}px`;
+            canvas.style.height = `${drawHeight}px`;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        };
+
+        resize();
+        resizeObserver = new ResizeObserver(resize);
+        resizeObserver.observe(canvas);
+
+        const handleMove = (e: PointerEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            pointerRef.current = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top,
+            };
+        };
+
+        const handleClick = (e: MouseEvent) => {
+            if (prefersReducedMotion) return;
+            const rect = canvas.getBoundingClientRect();
+            pulsesRef.current.push({
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top,
+                radius: 0,
+                opacity: 1,
+            });
+        };
+
+        canvas.addEventListener("pointermove", handleMove);
+        canvas.addEventListener("click", handleClick);
+
+        const drawContourLine = (lineIndex: number) => {
+            const baseY = (drawHeight / (safeLineCount + 1)) * (lineIndex + 1);
             const segments = 40;
 
+            ctx.beginPath();
             for (let j = 0; j <= segments; j++) {
-                const x = (w / segments) * j;
+                const x = (drawWidth / segments) * j;
                 let y = baseY;
+                y += Math.sin(x * 0.01 + lineIndex * 0.5) * 8;
+                y += Math.cos(x * 0.02 - lineIndex * 0.3) * 5;
 
-                // Sinusoidal base variation
-                y += Math.sin(x * 0.01 + i * 0.5) * 8;
-                y += Math.cos(x * 0.02 - i * 0.3) * 5;
-
-                // Pointer deformation
+                const pointer = pointerRef.current;
                 const dx = x - pointer.x;
                 const dy = y - pointer.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < deformRadius) {
-                    const force = (1 - dist / deformRadius) * deformStrength;
+                if (dist < safeDeformRadius) {
+                    const force = (1 - dist / safeDeformRadius) * safeDeformStrength;
                     y += force * Math.sign(dy || 1);
                 }
 
-                // Pulse wave deformation
-                activePulses.forEach((pulse) => {
+                pulsesRef.current.forEach((pulse) => {
                     const pdx = x - pulse.x;
                     const pdy = y - pulse.y;
                     const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
@@ -110,102 +147,69 @@ export const TopographicalPulse: React.FC<TopographicalPulseProps> = ({
                     }
                 });
 
-                points.push(j === 0 ? `M ${x} ${y}` : `L ${x} ${y}`);
+                if (j === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
             }
 
-            newPaths.push(points.join(" "));
-        }
-
-        setPaths(newPaths);
-    }, [lineCount, deformRadius, deformStrength]);
-
-    useEffect(() => {
-        const svg = svgRef.current;
-        if (!svg) return;
-
-        const handleMove = (e: PointerEvent) => {
-            const rect = svg.getBoundingClientRect();
-            pointerRef.current = {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top,
-            };
+            ctx.strokeStyle = lineColor;
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = safeLineOpacity;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
         };
 
-        const handleClick = (e: MouseEvent) => {
-            const rect = svg.getBoundingClientRect();
-            const newPulse: Pulse = {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top,
-                radius: 0,
-                opacity: 1,
-                id: pulseIdRef.current++,
-            };
-            pulsesRef.current.push(newPulse);
-        };
-
-        svg.addEventListener("pointermove", handleMove);
-        svg.addEventListener("click", handleClick);
-
-        let active = true;
-        const animate = () => {
-            if (!active) return;
-
-            // Update pulses
-            pulsesRef.current = pulsesRef.current.filter((p) => {
-                p.radius += pulseSpeed;
-                p.opacity *= 0.985;
-                return p.opacity > 0.01;
+        const drawPulseRings = () => {
+            pulsesRef.current.forEach((pulse) => {
+                ctx.beginPath();
+                ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = lineColor;
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = pulse.opacity * 0.5;
+                ctx.stroke();
+                ctx.globalAlpha = 1;
             });
-            setPulses([...pulsesRef.current]);
-
-            generatePaths();
-            rafRef.current = requestAnimationFrame(animate);
         };
 
-        rafRef.current = requestAnimationFrame(animate);
+        const draw = () => {
+            ctx.clearRect(0, 0, drawWidth, drawHeight);
+
+            pulsesRef.current = pulsesRef.current.filter((pulse) => {
+                pulse.radius += safePulseSpeed;
+                pulse.opacity *= 0.985;
+                return pulse.opacity > 0.01;
+            });
+
+            for (let i = 0; i < safeLineCount; i++) drawContourLine(i);
+            if (!prefersReducedMotion) drawPulseRings();
+
+            frame = requestAnimationFrame(draw);
+        };
+
+        frame = requestAnimationFrame(draw);
 
         return () => {
-            active = false;
-            cancelAnimationFrame(rafRef.current);
-            svg.removeEventListener("pointermove", handleMove);
-            svg.removeEventListener("click", handleClick);
+            cancelAnimationFrame(frame);
+            if (resizeObserver) resizeObserver.disconnect();
+            canvas.removeEventListener("pointermove", handleMove);
+            canvas.removeEventListener("click", handleClick);
         };
-    }, [generatePaths, pulseSpeed]);
+    }, [
+        safeLineCount,
+        safeLineOpacity,
+        safeDeformRadius,
+        safeDeformStrength,
+        safePulseSpeed,
+        lineColor,
+        prefersReducedMotion,
+    ]);
 
     return (
-        <svg
-            ref={svgRef}
+        <canvas
+            ref={canvasRef}
             className={`w-full h-full ${className}`}
             role="presentation"
             aria-hidden="true"
-        >
-            {/* Contour lines */}
-            {paths.map((d, i) => (
-                <path
-                    key={i}
-                    d={d}
-                    fill="none"
-                    stroke={lineColor}
-                    strokeWidth={1}
-                    strokeOpacity={lineOpacity}
-                    style={{ transition: "d 0.05s" }}
-                />
-            ))}
-
-            {/* Pulse rings */}
-            {pulses.map((pulse) => (
-                <circle
-                    key={pulse.id}
-                    cx={pulse.x}
-                    cy={pulse.y}
-                    r={pulse.radius}
-                    fill="none"
-                    stroke={lineColor}
-                    strokeWidth={2}
-                    strokeOpacity={pulse.opacity * 0.5}
-                />
-            ))}
-        </svg>
+        />
     );
 };
 

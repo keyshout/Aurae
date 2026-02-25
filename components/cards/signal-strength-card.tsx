@@ -22,6 +22,7 @@
 
 import React, { useRef, useState, useCallback, useMemo, useLayoutEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { toPositiveInt, toPositiveNumber } from "../../lib/utils";
 
 export interface SignalStrengthCardProps {
     /** Card children */
@@ -55,6 +56,8 @@ export const SignalStrengthCard: React.FC<SignalStrengthCardProps> = ({
     className = "",
 }) => {
     const prefersReducedMotion = useReducedMotion();
+    const safeSegmentsPerSide = toPositiveInt(segmentsPerSide, 10, 1);
+    const safeInfluenceRadius = toPositiveNumber(influenceRadius, 200, 1);
     const cardRef = useRef<HTMLDivElement>(null);
     const [pointer, setPointer] = useState({ x: -9999, y: -9999 });
     const [isHovered, setIsHovered] = useState(false);
@@ -84,7 +87,7 @@ export const SignalStrengthCard: React.FC<SignalStrengthCardProps> = ({
     // Generate segment positions (percentages)
     const segments: Segment[] = useMemo(() => {
         const segs: Segment[] = [];
-        const n = segmentsPerSide;
+        const n = safeSegmentsPerSide;
         for (let i = 0; i < n; i++) {
             const f1 = (i / n) * 100;
             const f2 = ((i + 1) / n) * 100;
@@ -94,7 +97,7 @@ export const SignalStrengthCard: React.FC<SignalStrengthCardProps> = ({
             segs.push({ side: "left", x1: 0, y1: f2, x2: 0, y2: f1 });
         }
         return segs;
-    }, [segmentsPerSide]);
+    }, [safeSegmentsPerSide]);
 
     return (
         <div
@@ -106,11 +109,7 @@ export const SignalStrengthCard: React.FC<SignalStrengthCardProps> = ({
             role="article"
         >
             {/* Signal border segments */}
-            <svg
-                className="absolute inset-0 w-full h-full pointer-events-none z-20"
-                style={{ overflow: "visible" }}
-                aria-hidden="true"
-            >
+            <div className="absolute inset-0 pointer-events-none z-20" aria-hidden="true">
                 {segments.map((seg, i) => {
                     // Use measured dimensions
                     const midX = ((seg.x1 + seg.x2) / 200) * dims.w;
@@ -118,29 +117,36 @@ export const SignalStrengthCard: React.FC<SignalStrengthCardProps> = ({
                     const dx = pointer.x - midX;
                     const dy = pointer.y - midY;
                     const dist = Math.sqrt(dx * dx + dy * dy);
-                    const intensity = isHovered
-                        ? Math.max(0.05, 1 - dist / influenceRadius)
+                    const intensity = isHovered && !prefersReducedMotion
+                        ? Math.max(0.05, 1 - dist / safeInfluenceRadius)
                         : 0.05;
+                    const isHorizontal = seg.y1 === seg.y2;
+                    const left = `${Math.min(seg.x1, seg.x2)}%`;
+                    const top = `${Math.min(seg.y1, seg.y2)}%`;
+                    const width = `${Math.max(0.4, Math.abs(seg.x2 - seg.x1))}%`;
+                    const height = `${Math.max(0.4, Math.abs(seg.y2 - seg.y1))}%`;
 
                     return (
-                        <motion.line
+                        <motion.div
                             key={i}
-                            x1={`${seg.x1}%`}
-                            y1={`${seg.y1}%`}
-                            x2={`${seg.x2}%`}
-                            y2={`${seg.y2}%`}
-                            stroke={signalColor}
-                            strokeWidth={2}
-                            strokeLinecap="round"
+                            className="absolute rounded-full"
+                            style={{
+                                left,
+                                top,
+                                width: isHorizontal ? width : "2px",
+                                height: isHorizontal ? "2px" : height,
+                                background: signalColor,
+                                transform: isHorizontal ? "translateY(-1px)" : "translateX(-1px)",
+                            }}
                             animate={{
-                                strokeOpacity: intensity,
-                                filter: intensity > 0.3 ? `drop-shadow(0 0 ${intensity * 6}px ${signalColor})` : "none",
+                                opacity: intensity,
+                                boxShadow: intensity > 0.3 ? `0 0 ${intensity * 6}px ${signalColor}` : "none",
                             }}
                             transition={{ duration: 0.1 }}
                         />
                     );
                 })}
-            </svg>
+            </div>
 
             {/* Card content */}
             <div

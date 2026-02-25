@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component MagneticCard
@@ -22,7 +22,7 @@
  */
 
 import React, { useRef, useState, useCallback } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface MagneticCardProps {
     /** Card children */
@@ -50,7 +50,6 @@ export const MagneticCard: React.FC<MagneticCardProps> = ({
     shadowColor = "rgba(0,0,0,0.3)",
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const cardRef = useRef<HTMLDivElement>(null);
     const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
     const [glarePos, setGlarePos] = useState({ x: 50, y: 50 });
@@ -139,3 +138,4 @@ export const MagneticCard: React.FC<MagneticCardProps> = ({
 };
 
 export default MagneticCard;
+

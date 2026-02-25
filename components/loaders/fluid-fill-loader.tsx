@@ -3,8 +3,8 @@
 /**
  * @component FluidFillLoader
  * @description An empty container gradually fills with liquid. The liquid surface
- * has realistic wave ripples using SVG path animation.
- * Principle: SVG wave path + fill level animation.
+ * has wave-like ripples using gradient layers.
+ * Principle: layered fill + animated radial wave pattern.
  *
  * @example
  * ```tsx
@@ -14,8 +14,9 @@
  * ```
  */
 
-import React, { useId } from "react";
+import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { toPositiveNumber } from "../../lib/utils";
 
 export interface FluidFillLoaderProps {
     /** Fill progress (0-1). Default: auto-animating */
@@ -38,8 +39,9 @@ export const FluidFillLoader: React.FC<FluidFillLoaderProps> = ({
     className = "",
 }) => {
     const prefersReducedMotion = useReducedMotion();
-    const clipId = useId();
     const isAutoProgress = progress === undefined;
+    const safeAmplitude = toPositiveNumber(waveAmplitude, 4, 0.1);
+    const safeWaveSpeed = toPositiveNumber(waveSpeed, 2, 0.01);
 
     // Auto progress animates 0→100→0 loop
     const fillPercent = progress !== undefined ? Math.min(1, Math.max(0, progress)) * 100 : 50;
@@ -50,64 +52,42 @@ export const FluidFillLoader: React.FC<FluidFillLoaderProps> = ({
             role="status"
             aria-label={`Loading ${Math.round(fillPercent)}%`}
         >
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <defs>
-                    <clipPath id={clipId}>
-                        <rect x="0" y="0" width="100" height="100" rx="4" />
-                    </clipPath>
-                </defs>
+            <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+                <motion.div
+                    className="absolute inset-x-0 bottom-0"
+                    style={{
+                        background: `linear-gradient(180deg, ${color}40 0%, ${color}80 100%)`,
+                    }}
+                    animate={
+                        isAutoProgress
+                            ? { height: ["10%", "90%", "10%"] }
+                            : { height: `${fillPercent}%` }
+                    }
+                    transition={
+                        isAutoProgress
+                            ? { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                            : { duration: 0.5, ease: "easeOut" }
+                    }
+                />
 
-                <g clipPath={`url(#${clipId})`}>
-                    {/* Fluid fill */}
-                    <motion.rect
-                        x="0"
-                        width="100"
-                        height="100"
-                        fill={color}
-                        fillOpacity={0.3}
-                        animate={
-                            isAutoProgress
-                                ? { y: [90, 10, 90] }
-                                : { y: 100 - fillPercent }
-                        }
-                        transition={
-                            isAutoProgress
-                                ? { duration: 4, repeat: Infinity, ease: "easeInOut" }
-                                : { duration: 0.5, ease: "easeOut" }
-                        }
+                {!prefersReducedMotion && (
+                    <motion.div
+                        className="absolute inset-x-0 rounded-[999px]"
+                        style={{
+                            height: Math.max(10, safeAmplitude * 4),
+                            top: `calc(${100 - fillPercent}% - ${safeAmplitude * 2}px)`,
+                            background: `repeating-radial-gradient(circle at 0% 50%, ${color}80 0 6px, transparent 7px 14px)`,
+                            filter: `blur(${safeAmplitude * 0.15}px)`,
+                        }}
+                        animate={isAutoProgress ? { top: ["80%", "20%", "80%"], backgroundPositionX: ["0px", "56px"] } : { y: [-safeAmplitude, safeAmplitude, -safeAmplitude], backgroundPositionX: ["0px", "56px"] }}
+                        transition={{
+                            duration: isAutoProgress ? 4 : safeWaveSpeed,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                        }}
                     />
-
-                    {/* Wave surface */}
-                    {!prefersReducedMotion && (
-                        <motion.path
-                            d={`M0,${100 - fillPercent} Q25,${100 - fillPercent - waveAmplitude} 50,${100 - fillPercent} T100,${100 - fillPercent} V100 H0 Z`}
-                            fill={color}
-                            fillOpacity={0.15}
-                            animate={
-                                isAutoProgress
-                                    ? {
-                                        d: [
-                                            `M0,70 Q25,${70 - waveAmplitude} 50,70 T100,70 V100 H0 Z`,
-                                            `M0,30 Q25,${30 + waveAmplitude} 50,30 T100,30 V100 H0 Z`,
-                                            `M0,70 Q25,${70 - waveAmplitude} 50,70 T100,70 V100 H0 Z`,
-                                        ],
-                                    }
-                                    : {
-                                        d: [
-                                            `M0,${100 - fillPercent} Q25,${100 - fillPercent - waveAmplitude} 50,${100 - fillPercent} T100,${100 - fillPercent} V100 H0 Z`,
-                                            `M0,${100 - fillPercent} Q25,${100 - fillPercent + waveAmplitude} 50,${100 - fillPercent} T100,${100 - fillPercent} V100 H0 Z`,
-                                        ],
-                                    }
-                            }
-                            transition={{
-                                duration: isAutoProgress ? 4 : waveSpeed,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                            }}
-                        />
-                    )}
-                </g>
-            </svg>
+                )}
+            </div>
 
             {/* Percentage text */}
             <span

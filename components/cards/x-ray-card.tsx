@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component XRayCard
@@ -19,7 +19,7 @@
  */
 
 import React, { useRef, useState, useCallback } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface XRayCardProps {
     /** Front (visible) content */
@@ -41,7 +41,6 @@ export const XRayCard: React.FC<XRayCardProps> = ({
     parallaxIntensity = 10,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const cardRef = useRef<HTMLDivElement>(null);
     const [pointer, setPointer] = useState({ x: 50, y: 50, px: 0, py: 0 });
     const [isHovered, setIsHovered] = useState(false);
@@ -142,3 +141,4 @@ export const XRayCard: React.FC<XRayCardProps> = ({
 };
 
 export default XRayCard;
+

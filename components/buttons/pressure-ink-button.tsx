@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component PressureInkButton
@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface PressureInkButtonProps {
     /** Button content */
@@ -48,7 +48,6 @@ export const PressureInkButton: React.FC<PressureInkButtonProps> = ({
     disabled = false,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const btnRef = useRef<HTMLButtonElement>(null);
     const [blots, setBlots] = useState<InkBlot[]>([]);
     const idRef = useRef(0);
@@ -124,3 +123,4 @@ export const PressureInkButton: React.FC<PressureInkButtonProps> = ({
 };
 
 export default PressureInkButton;
+

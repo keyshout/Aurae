@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component NeonFlickerText
@@ -20,7 +20,6 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { useReducedMotion } from "framer-motion";
 
 export interface NeonFlickerTextProps {
     /** Text to display */
@@ -57,7 +56,6 @@ export const NeonFlickerText: React.FC<NeonFlickerTextProps> = ({
     className = "",
     ariaLabel,
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const resolvedSecondary = secondaryColor || color;
     const flickersRef = useRef<CharFlicker[]>(
         text.split("").map(() => ({ brightness: baseBrightness, blur: 0, isOff: false }))
@@ -178,3 +176,4 @@ export const NeonFlickerText: React.FC<NeonFlickerTextProps> = ({
 };
 
 export default NeonFlickerText;
+

@@ -4,7 +4,7 @@
  * @component ElasticBorderButton
  * @description Border has gel-like consistency; near the pointer it bulges outward,
  * on click an elastic wave travels around the border.
- * Based on SVG border path deformation + wave animation.
+ * Based on reactive border glow deformation + wave animation.
  *
  * @example
  * ```tsx
@@ -19,8 +19,9 @@
  * ```
  */
 
-import React, { useRef, useState, useCallback, useEffect, useMemo } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { toPositiveNumber } from "../../lib/utils";
 
 export interface ElasticBorderButtonProps {
     /** Button content */
@@ -49,8 +50,9 @@ export const ElasticBorderButton: React.FC<ElasticBorderButtonProps> = ({
     const btnRef = useRef<HTMLButtonElement>(null);
     const [pointer, setPointer] = useState({ x: 50, y: 50 });
     const [isHovered, setIsHovered] = useState(false);
-    const [wavePhase, setWavePhase] = useState(0);
     const [isWaving, setIsWaving] = useState(false);
+    const [waveNonce, setWaveNonce] = useState(0);
+    const safeBulge = toPositiveNumber(bulgeAmount, 6, 0);
 
     const handlePointerMove = useCallback((e: React.PointerEvent) => {
         const el = btnRef.current;
@@ -66,84 +68,22 @@ export const ElasticBorderButton: React.FC<ElasticBorderButtonProps> = ({
         (e: React.MouseEvent) => {
             if (disabled) return;
             setIsWaving(true);
-            setWavePhase(0);
+            setWaveNonce((prev) => prev + 1);
             onClick?.(e);
         },
         [onClick, disabled]
     );
 
-    // Wave animation
     useEffect(() => {
         if (!isWaving) return;
-        let frame: number;
-        let phase = 0;
-        const animate = () => {
-            phase += 0.05;
-            setWavePhase(phase);
-            if (phase >= Math.PI * 2) {
-                setIsWaving(false);
-                return;
-            }
-            frame = requestAnimationFrame(animate);
-        };
-        frame = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(frame);
+        const t = setTimeout(() => setIsWaving(false), 550);
+        return () => clearTimeout(t);
     }, [isWaving]);
 
-    // Generate SVG border path with deformation
     const w = 160;
     const h = 48;
-    const r = 12;
-    const segments = 40;
-
-    // Memoize SVG border path — only recalculate on pointer/wave changes
-    const borderPath = useMemo(() => {
-        const points: string[] = [];
-        for (let i = 0; i <= segments; i++) {
-            const t = i / segments;
-            let x: number, y: number;
-
-            // Traverse the rectangle perimeter
-            const perim = 2 * (w + h);
-            const pos = t * perim;
-
-            if (pos < w) {
-                x = pos; y = 0;
-            } else if (pos < w + h) {
-                x = w; y = pos - w;
-            } else if (pos < 2 * w + h) {
-                x = w - (pos - w - h); y = h;
-            } else {
-                x = 0; y = h - (pos - 2 * w - h);
-            }
-
-            // Apply bulge toward pointer
-            if (isHovered) {
-                const dx = (pointer.x / 100) * w - x;
-                const dy = (pointer.y / 100) * h - y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                const maxDist = w * 0.4;
-                if (dist < maxDist) {
-                    const force = (1 - dist / maxDist) * bulgeAmount;
-                    const angle = Math.atan2(dy, dx);
-                    x -= Math.cos(angle) * force;
-                    y -= Math.sin(angle) * force;
-                }
-            }
-
-            // Wave deformation
-            if (isWaving) {
-                const waveOffset = Math.sin(t * Math.PI * 4 - wavePhase * 4) * bulgeAmount * 0.5;
-                const nx = y === 0 || y === h ? 0 : (x === 0 ? -1 : 1);
-                const ny = x === 0 || x === w ? 0 : (y === 0 ? -1 : 1);
-                x += nx * waveOffset;
-                y += ny * waveOffset;
-            }
-
-            points.push(`${i === 0 ? "M" : "L"} ${x} ${y}`);
-        }
-        return points.join(" ") + " Z";
-    }, [pointer.x, pointer.y, isHovered, isWaving, wavePhase, w, h, segments, bulgeAmount]);
+    const baseRadius = 12;
+    const pointerForce = isHovered ? Math.sin((pointer.x + pointer.y) * 0.06) * safeBulge * 0.35 : 0;
 
     return (
         <motion.button
@@ -158,23 +98,46 @@ export const ElasticBorderButton: React.FC<ElasticBorderButtonProps> = ({
             whileTap={{ scale: 0.97 }}
             aria-disabled={disabled}
         >
-            {/* SVG elastic border */}
-            <svg
-                className="absolute inset-0 w-full h-full pointer-events-none"
-                viewBox={`-${bulgeAmount} -${bulgeAmount} ${w + bulgeAmount * 2} ${h + bulgeAmount * 2}`}
+            <motion.div
+                className="absolute inset-0 pointer-events-none border-2"
+                style={{
+                    borderColor,
+                    borderRadius: baseRadius + pointerForce,
+                    background: isHovered
+                        ? `radial-gradient(circle at ${pointer.x}% ${pointer.y}%, ${borderColor}33 0%, transparent 45%)`
+                        : "transparent",
+                    boxShadow: `0 0 ${4 + safeBulge}px ${borderColor}44`,
+                }}
+                animate={prefersReducedMotion ? undefined : {
+                    borderRadius: [
+                        baseRadius + pointerForce,
+                        baseRadius + pointerForce + safeBulge * 0.1,
+                        baseRadius + pointerForce,
+                    ],
+                }}
+                transition={prefersReducedMotion ? undefined : {
+                    duration: 0.45,
+                    repeat: Infinity,
+                    repeatType: "mirror",
+                }}
                 aria-hidden="true"
-            >
-                <path
-                    d={borderPath}
-                    fill="none"
-                    stroke={borderColor}
-                    strokeWidth={2}
+            />
+
+            {isWaving && !prefersReducedMotion && (
+                <motion.div
+                    key={waveNonce}
+                    className="absolute inset-0 pointer-events-none border-2"
                     style={{
-                        filter: `drop-shadow(0 0 4px ${borderColor}60)`,
-                        transition: "d 0.05s",
+                        borderColor,
+                        borderRadius: baseRadius,
+                        opacity: 0.7,
                     }}
+                    initial={{ scale: 1, opacity: 0.8 }}
+                    animate={{ scale: 1.08, opacity: 0 }}
+                    transition={{ duration: 0.55, ease: "easeOut" }}
+                    aria-hidden="true"
                 />
-            </svg>
+            )}
 
             <span className="relative z-10 font-semibold text-white px-6 py-3">{children}</span>
         </motion.button>

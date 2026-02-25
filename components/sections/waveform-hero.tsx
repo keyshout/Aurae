@@ -18,7 +18,7 @@
  * ```
  */
 
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { hexToRgbString } from "../../lib/utils";
 

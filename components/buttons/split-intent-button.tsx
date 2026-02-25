@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component SplitIntentButton
@@ -20,7 +20,7 @@
  */
 
 import React, { useState, useCallback, useRef } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface SplitIntentButtonProps {
     /** Button content */
@@ -56,7 +56,6 @@ export const SplitIntentButton: React.FC<SplitIntentButtonProps> = ({
     disabled = false,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const btnRef = useRef<HTMLButtonElement>(null);
     const [direction, setDirection] = useState<Direction>("left");
     const [isHovered, setIsHovered] = useState(false);
@@ -119,3 +118,4 @@ export const SplitIntentButton: React.FC<SplitIntentButtonProps> = ({
 };
 
 export default SplitIntentButton;
+

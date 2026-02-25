@@ -28,6 +28,7 @@
         }
     },
     "include": [
+        "index.ts",
         "components/**/*.tsx",
         "hooks/**/*.ts",
         "lib/**/*.ts"

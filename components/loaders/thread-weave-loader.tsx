@@ -3,7 +3,7 @@
 /**
  * @component ThreadWeaveLoader
  * @description Thin lines from diagonal directions weave each other, filling the loading area.
- * Based on diagonal SVG line animation + opacity accumulation.
+ * Based on diagonal line layers + opacity accumulation.
  *
  * @example
  * ```tsx
@@ -14,7 +14,8 @@
  */
 
 import React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { toPositiveInt, toPositiveNumber } from "../../lib/utils";
 
 export interface ThreadWeaveLoaderProps {
     /** Width. Default: 200 */
@@ -39,42 +40,56 @@ export const ThreadWeaveLoader: React.FC<ThreadWeaveLoaderProps> = ({
     speed = 1,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
-    const dur = 2 / speed;
+    const safeWidth = toPositiveNumber(width, 200, 1);
+    const safeHeight = toPositiveNumber(height, 150, 1);
+    const safeSpeed = toPositiveNumber(speed, 1, 0.01);
+    const safeThreadCount = toPositiveInt(threadCount, 8, 1);
+    const dur = 2 / safeSpeed;
+
+    const toLineStyle = (x1: number, y1: number, x2: number, y2: number) => {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+        return {
+            left: x1,
+            top: y1,
+            width: length,
+            transform: `translateY(-0.5px) rotate(${angle}deg)`,
+        };
+    };
 
     return (
         <div
             className={`relative overflow-hidden ${className}`}
-            style={{ width, height }}
+            style={{ width: safeWidth, height: safeHeight }}
             role="progressbar"
             aria-label="Loading"
         >
-            <svg
-                width={width}
-                height={height}
-                className="absolute inset-0"
-                aria-hidden="true"
-            >
-                {/* Forward diagonal threads (top-left to bottom-right) */}
-                {Array.from({ length: threadCount }, (_, i) => {
-                    const offset = ((i + 1) / (threadCount + 1)) * (width + height);
+            <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+                {Array.from({ length: safeThreadCount }, (_, i) => {
+                    const offset = ((i + 1) / (safeThreadCount + 1)) * (safeWidth + safeHeight);
+                    const x1 = Math.max(0, offset - safeHeight);
+                    const y1 = Math.max(0, safeHeight - offset);
+                    const x2 = Math.min(safeWidth, offset);
+                    const y2 = Math.min(safeHeight, offset);
+                    const lineStyle = toLineStyle(x1, y1, x2, y2);
                     return (
-                        <motion.line
+                        <motion.div
                             key={`fwd-${i}`}
-                            x1={Math.max(0, offset - height)}
-                            y1={Math.max(0, height - offset)}
-                            x2={Math.min(width, offset)}
-                            y2={Math.min(height, offset)}
-                            stroke={threadColor}
-                            strokeWidth={1}
-                            initial={{ pathLength: 0, opacity: 0 }}
+                            className="absolute h-px origin-left"
+                            style={{
+                                ...lineStyle,
+                                background: threadColor,
+                            }}
+                            initial={{ scaleX: 0, opacity: 0 }}
                             animate={{
-                                pathLength: [0, 1],
+                                scaleX: [0, 1],
                                 opacity: [0, 0.5, 0.3],
                             }}
                             transition={{
                                 duration: dur,
-                                delay: i * 0.12 / speed,
+                                delay: i * 0.12 / safeSpeed,
                                 repeat: Infinity,
                                 repeatDelay: 0.5,
                             }}
@@ -82,26 +97,29 @@ export const ThreadWeaveLoader: React.FC<ThreadWeaveLoaderProps> = ({
                     );
                 })}
 
-                {/* Backward diagonal threads (top-right to bottom-left) */}
-                {Array.from({ length: threadCount }, (_, i) => {
-                    const offset = ((i + 1) / (threadCount + 1)) * (width + height);
+                {Array.from({ length: safeThreadCount }, (_, i) => {
+                    const offset = ((i + 1) / (safeThreadCount + 1)) * (safeWidth + safeHeight);
+                    const x1 = safeWidth - Math.max(0, offset - safeHeight);
+                    const y1 = Math.max(0, safeHeight - offset);
+                    const x2 = safeWidth - Math.min(safeWidth, offset);
+                    const y2 = Math.min(safeHeight, offset);
+                    const lineStyle = toLineStyle(x1, y1, x2, y2);
                     return (
-                        <motion.line
+                        <motion.div
                             key={`bwd-${i}`}
-                            x1={width - Math.max(0, offset - height)}
-                            y1={Math.max(0, height - offset)}
-                            x2={width - Math.min(width, offset)}
-                            y2={Math.min(height, offset)}
-                            stroke={threadColor}
-                            strokeWidth={1}
-                            initial={{ pathLength: 0, opacity: 0 }}
+                            className="absolute h-px origin-left"
+                            style={{
+                                ...lineStyle,
+                                background: threadColor,
+                            }}
+                            initial={{ scaleX: 0, opacity: 0 }}
                             animate={{
-                                pathLength: [0, 1],
+                                scaleX: [0, 1],
                                 opacity: [0, 0.4, 0.25],
                             }}
                             transition={{
                                 duration: dur,
-                                delay: (threadCount + i) * 0.1 / speed,
+                                delay: (safeThreadCount + i) * 0.1 / safeSpeed,
                                 repeat: Infinity,
                                 repeatDelay: 0.5,
                             }}
@@ -109,27 +127,30 @@ export const ThreadWeaveLoader: React.FC<ThreadWeaveLoaderProps> = ({
                     );
                 })}
 
-                {/* Intersection glow dots */}
                 {Array.from({ length: 4 }, (_, i) => (
-                    <motion.circle
+                    <motion.div
                         key={`glow-${i}`}
-                        cx={width * (0.25 + (i % 2) * 0.5)}
-                        cy={height * (0.25 + Math.floor(i / 2) * 0.5)}
-                        r={2}
-                        fill={threadColor}
+                        className="absolute rounded-full"
+                        style={{
+                            left: safeWidth * (0.25 + (i % 2) * 0.5) - 2,
+                            top: safeHeight * (0.25 + Math.floor(i / 2) * 0.5) - 2,
+                            width: 4,
+                            height: 4,
+                            background: threadColor,
+                            boxShadow: `0 0 4px ${threadColor}`,
+                        }}
                         animate={{
                             opacity: [0, 0.8, 0],
                             scale: [0.5, 1.5, 0.5],
                         }}
                         transition={{
-                            duration: 1.5 / speed,
+                            duration: 1.5 / safeSpeed,
                             delay: i * 0.3,
                             repeat: Infinity,
                         }}
-                        style={{ filter: `drop-shadow(0 0 4px ${threadColor})` }}
                     />
                 ))}
-            </svg>
+            </div>
         </div>
     );
 };

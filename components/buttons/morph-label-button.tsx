@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component MorphLabelButton
@@ -19,7 +19,7 @@
  */
 
 import React, { useState } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface MorphLabelButtonProps {
     /** Default label */
@@ -44,7 +44,6 @@ export const MorphLabelButton: React.FC<MorphLabelButtonProps> = ({
     disabled = false,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const [isHovered, setIsHovered] = useState(false);
     const currentLabel = isHovered ? hoverLabel : label;
     const maxLen = Math.max(label.length, hoverLabel.length);
@@ -115,3 +114,4 @@ export const MorphLabelButton: React.FC<MorphLabelButtonProps> = ({
 };
 
 export default MorphLabelButton;
+

@@ -4,7 +4,7 @@
  * @component SilkAurora
  * @description Silky, organic, slowly moving color waves. Not static blur but
  * flowing and breathing fabric-like gradients.
- * Based on SVG feTurbulence filter + multi-layer color animation.
+ * Based on multi-layer color animation + blur blending.
  *
  * @example
  * ```tsx
@@ -18,8 +18,9 @@
  * ```
  */
 
-import React, { useId } from "react";
+import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { toPositiveNumber } from "../../lib/utils";
 
 export interface SilkAuroraProps {
     /** Array of gradient colors (2–5 recommended). Default: purple/teal/rose */
@@ -42,8 +43,8 @@ export const SilkAurora: React.FC<SilkAuroraProps> = ({
     className = "",
 }) => {
     const prefersReducedMotion = useReducedMotion();
-    const id = useId();
-    const filterId = `silk-aurora-${id}`;
+    const safeSpeed = toPositiveNumber(speed, 1, 0.01);
+    const safeColors = colors.length >= 2 ? colors : ["#7c3aed", "#2dd4bf"];
 
     return (
         <div
@@ -52,46 +53,16 @@ export const SilkAurora: React.FC<SilkAuroraProps> = ({
             aria-hidden="true"
             style={{ opacity }}
         >
-            {/* SVG filter for organic turbulence */}
-            <svg className="absolute w-0 h-0">
-                <defs>
-                    <filter id={filterId}>
-                        <feTurbulence
-                            type="fractalNoise"
-                            baseFrequency="0.006"
-                            numOctaves={3}
-                            seed={42}
-                            stitchTiles="stitch"
-                        >
-                            <animate
-                                attributeName="baseFrequency"
-                                values="0.006;0.009;0.006"
-                                dur={`${20 / speed}s`}
-                                repeatCount="indefinite"
-                            />
-                        </feTurbulence>
-                        <feDisplacementMap in="SourceGraphic" scale={60}>
-                            <animate
-                                attributeName="scale"
-                                values="60;90;60"
-                                dur={`${15 / speed}s`}
-                                repeatCount="indefinite"
-                            />
-                        </feDisplacementMap>
-                    </filter>
-                </defs>
-            </svg>
-
             {/* Aurora layers */}
             <div
                 className="absolute inset-0"
                 style={{
-                    filter: `url(#${filterId}) blur(${blur}px)`,
+                    filter: `blur(${blur}px)`,
                 }}
             >
-                {colors.map((color, i) => {
-                    const angle = (360 / colors.length) * i;
-                    const duration = (18 + i * 4) / speed;
+                {safeColors.map((color, i) => {
+                    const angle = (360 / safeColors.length) * i;
+                    const duration = (18 + i * 4) / safeSpeed;
                     const size = 60 + i * 10;
 
                     return (
@@ -106,14 +77,14 @@ export const SilkAurora: React.FC<SilkAuroraProps> = ({
                                 left: `${20 + Math.cos(angle * (Math.PI / 180)) * 30}%`,
                             }}
                             animate={{
-                                x: [0, 50 * Math.cos(angle), -30 * Math.sin(angle), 0],
-                                y: [0, -40 * Math.sin(angle), 50 * Math.cos(angle), 0],
-                                scale: [1, 1.2, 0.9, 1],
-                                rotate: [0, 120, 240, 360],
+                                x: prefersReducedMotion ? 0 : [0, 50 * Math.cos(angle), -30 * Math.sin(angle), 0],
+                                y: prefersReducedMotion ? 0 : [0, -40 * Math.sin(angle), 50 * Math.cos(angle), 0],
+                                scale: prefersReducedMotion ? 1 : [1, 1.2, 0.9, 1],
+                                rotate: prefersReducedMotion ? 0 : [0, 120, 240, 360],
                             }}
                             transition={{
                                 duration,
-                                repeat: Infinity,
+                                repeat: prefersReducedMotion ? 0 : Infinity,
                                 ease: "easeInOut",
                             }}
                         />
@@ -129,9 +100,13 @@ export const SilkAurora: React.FC<SilkAuroraProps> = ({
                         "radial-gradient(ellipse at 40% 50%, transparent 30%, rgba(0,0,0,0.3) 100%)",
                 }}
                 animate={{
-                    opacity: [0.3, 0.5, 0.3],
+                    opacity: prefersReducedMotion ? 0.3 : [0.3, 0.5, 0.3],
                 }}
-                transition={{ duration: 8 / speed, repeat: Infinity, ease: "easeInOut" }}
+                transition={{
+                    duration: 8 / safeSpeed,
+                    repeat: prefersReducedMotion ? 0 : Infinity,
+                    ease: "easeInOut",
+                }}
             />
         </div>
     );

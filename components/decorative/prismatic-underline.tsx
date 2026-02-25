@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component PrismaticUnderline
@@ -17,7 +17,7 @@
  */
 
 import React, { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface PrismaticUnderlineProps {
     /** Link content */
@@ -42,7 +42,6 @@ export const PrismaticUnderline: React.FC<PrismaticUnderlineProps> = ({
     duration = 0.3,
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -102,3 +101,4 @@ export const PrismaticUnderline: React.FC<PrismaticUnderlineProps> = ({
 };
 
 export default PrismaticUnderline;
+

@@ -16,6 +16,7 @@
 
 import React, { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { toPositiveInt, toPositiveNumber } from "../../lib/utils";
 
 export interface ThinkingIndicatorProps {
     /** Node color. Default: "#8b5cf6" */
@@ -35,14 +36,18 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
     className = "",
 }) => {
     const prefersReducedMotion = useReducedMotion();
+    const safeNodeCount = toPositiveInt(nodeCount, 7, 2);
+    const safePulseSpeed = toPositiveNumber(pulseSpeed, 1.5, 0.01);
+    const width = 80;
+    const height = 32;
 
     // Generate node positions in a small network layout
     const nodes = useMemo(() => {
         const positions: { x: number; y: number }[] = [];
-        const center = { x: 40, y: 16 };
+        const center = { x: width / 2, y: height / 2 };
 
-        for (let i = 0; i < nodeCount; i++) {
-            const angle = (i / nodeCount) * Math.PI * 2 + Math.PI / 6;
+        for (let i = 0; i < safeNodeCount; i++) {
+            const angle = (i / safeNodeCount) * Math.PI * 2 + Math.PI / 6;
             const radius = i % 2 === 0 ? 12 : 8;
             positions.push({
                 x: center.x + Math.cos(angle) * radius,
@@ -50,7 +55,7 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
             });
         }
         return positions;
-    }, [nodeCount]);
+    }, [safeNodeCount]);
 
     // Generate connections between nearby nodes
     const edges = useMemo(() => {
@@ -69,49 +74,61 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
 
     return (
         <div className={`inline-flex items-center gap-2 ${className}`} role="status" aria-label="AI is thinking">
-            <svg width={80} height={32} className="overflow-visible">
-                {/* Edges */}
-                {edges.map((e, i) => (
-                    <motion.line
-                        key={`e-${i}`}
-                        x1={nodes[e.from].x}
-                        y1={nodes[e.from].y}
-                        x2={nodes[e.to].x}
-                        y2={nodes[e.to].y}
-                        stroke={color}
-                        strokeWidth={0.5}
-                        animate={prefersReducedMotion ? { opacity: 0.2 } : {
-                            opacity: [0.1, 0.4, 0.1],
-                        }}
-                        transition={{
-                            duration: pulseSpeed,
-                            delay: i * 0.1,
-                            repeat: Infinity,
-                        }}
-                    />
-                ))}
+            <div className="relative overflow-visible" style={{ width, height }} aria-hidden="true">
+                {edges.map((e, i) => {
+                    const x1 = nodes[e.from].x;
+                    const y1 = nodes[e.from].y;
+                    const x2 = nodes[e.to].x;
+                    const y2 = nodes[e.to].y;
+                    const dx = x2 - x1;
+                    const dy = y2 - y1;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+                    return (
+                        <motion.div
+                            key={`e-${i}`}
+                            className="absolute h-px origin-left"
+                            style={{
+                                left: x1,
+                                top: y1,
+                                width: length,
+                                background: color,
+                                transform: `translateY(-0.5px) rotate(${angle}deg)`,
+                            }}
+                            animate={prefersReducedMotion ? { opacity: 0.2 } : { opacity: [0.1, 0.4, 0.1] }}
+                            transition={{
+                                duration: safePulseSpeed,
+                                delay: i * 0.1,
+                                repeat: Infinity,
+                            }}
+                        />
+                    );
+                })}
 
-                {/* Nodes */}
                 {nodes.map((n, i) => (
-                    <motion.circle
+                    <motion.div
                         key={`n-${i}`}
-                        cx={n.x}
-                        cy={n.y}
-                        r={2}
-                        fill={color}
+                        className="absolute rounded-full"
+                        style={{
+                            left: n.x - 2,
+                            top: n.y - 2,
+                            width: 4,
+                            height: 4,
+                            background: color,
+                        }}
                         animate={prefersReducedMotion ? { opacity: 0.5 } : {
                             opacity: [0.3, 1, 0.3],
-                            r: [1.5, 2.5, 1.5],
+                            scale: [0.75, 1.25, 0.75],
                         }}
                         transition={{
-                            duration: pulseSpeed,
-                            delay: i * (pulseSpeed / nodeCount),
+                            duration: safePulseSpeed,
+                            delay: i * (safePulseSpeed / safeNodeCount),
                             repeat: Infinity,
                             ease: "easeInOut",
                         }}
                     />
                 ))}
-            </svg>
+            </div>
             <span className="text-xs text-gray-500 font-mono">thinking</span>
         </div>
     );

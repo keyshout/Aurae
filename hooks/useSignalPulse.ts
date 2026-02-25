@@ -23,7 +23,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useReducedMotion } from "framer-motion";
+import { toFiniteNumber, toPositiveNumber } from '../lib/utils';
 
 export interface SignalPulseResult {
     /** Current pulse count (increments each cycle) */
@@ -60,6 +60,10 @@ export function useSignalPulse(options: UseSignalPulseOptions = {}): SignalPulse
         easing = (t: number) => t,
     } = options;
 
+    const safeInterval = toPositiveNumber(interval, 2000, 16);
+    const safeDuration = toPositiveNumber(duration, 500, 1);
+    const safeMaxPulses = Math.max(0, Math.floor(toFiniteNumber(maxPulses, 0)));
+
     const [pulse, setPulse] = useState(0);
     const [progress, setProgress] = useState(0);
     const [isPulsing, setIsPulsing] = useState(false);
@@ -71,7 +75,7 @@ export function useSignalPulse(options: UseSignalPulseOptions = {}): SignalPulse
 
     const animatePulse = useCallback(() => {
         const elapsed = performance.now() - startTimeRef.current;
-        const rawProgress = Math.min(1, elapsed / duration);
+        const rawProgress = Math.min(1, elapsed / safeDuration);
         const easedProgress = easing(rawProgress);
 
         setProgress(easedProgress);
@@ -82,10 +86,10 @@ export function useSignalPulse(options: UseSignalPulseOptions = {}): SignalPulse
             setIsPulsing(false);
             setProgress(1);
         }
-    }, [duration, easing]);
+    }, [safeDuration, easing]);
 
     const trigger = useCallback(() => {
-        if (maxPulses > 0 && pulseCountRef.current >= maxPulses) return;
+        if (safeMaxPulses > 0 && pulseCountRef.current >= safeMaxPulses) return;
 
         pulseCountRef.current += 1;
         setPulse(pulseCountRef.current);
@@ -93,7 +97,7 @@ export function useSignalPulse(options: UseSignalPulseOptions = {}): SignalPulse
         startTimeRef.current = performance.now();
         cancelAnimationFrame(rafRef.current);
         rafRef.current = requestAnimationFrame(animatePulse);
-    }, [animatePulse, maxPulses]);
+    }, [animatePulse, safeMaxPulses]);
 
     const reset = useCallback(() => {
         pulseCountRef.current = 0;
@@ -109,13 +113,13 @@ export function useSignalPulse(options: UseSignalPulseOptions = {}): SignalPulse
         // Fire initial pulse
         trigger();
 
-        intervalRef.current = setInterval(trigger, interval);
+        intervalRef.current = setInterval(trigger, safeInterval);
 
         return () => {
             clearInterval(intervalRef.current);
             cancelAnimationFrame(rafRef.current);
         };
-    }, [autoStart, interval, trigger]);
+    }, [autoStart, safeInterval, trigger]);
 
     return { pulse, progress, isPulsing, trigger, reset };
 }

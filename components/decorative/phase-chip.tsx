@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * @component PhaseChip
@@ -17,7 +17,7 @@
  */
 
 import React, { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface PhaseChipProps {
     /** Chip label */
@@ -53,7 +53,6 @@ export const PhaseChip: React.FC<PhaseChipProps> = ({
     size = "md",
     className = "",
 }) => {
-    const prefersReducedMotion = useReducedMotion();
     const [isHovered, setIsHovered] = useState(false);
     const colors = VARIANT_COLORS[variant] || VARIANT_COLORS.info;
     const sizeClass = SIZE_MAP[size] || SIZE_MAP.md;
@@ -99,3 +98,4 @@ export const PhaseChip: React.FC<PhaseChipProps> = ({
 };
 
 export default PhaseChip;
+
