@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   output: "export",
-  basePath: "/Aurae",
+  basePath: process.env.GITHUB_ACTIONS ? "/Aurae" : "",
   images: {
     unoptimized: true,
   },
